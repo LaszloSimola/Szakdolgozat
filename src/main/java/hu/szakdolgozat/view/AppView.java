@@ -1,25 +1,22 @@
-package hu.szakdolgozat;
+// View
+package hu.szakdolgozat.view;
 
+import hu.szakdolgozat.controller.ApplicationController;
+import hu.szakdolgozat.model.Entity;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-/**
- * JavaFX App
- */
-public class App extends Application {
-    private boolean egyedclicked = false;
-    private boolean kapcsolatClicked = false;
-    private boolean AttrClicked = false;
+public class AppView extends Application {
+    private final ApplicationController controller = new ApplicationController();
 
     @Override
     public void start(Stage stage) {
@@ -30,22 +27,10 @@ public class App extends Application {
 
         Pane root = new Pane();
 
-        // Event handler for Egyed button
-        egyedButton.setOnAction(e -> {
-            if (!egyedclicked){
-                egyedclicked = true;
-            }else{
-                egyedclicked = false;
-            }
-        });
-        kapcsolatButton.setOnAction(e -> {
-            egyedclicked = false;
-            if (!kapcsolatClicked){
-                kapcsolatClicked = true;
-            }else{
-                kapcsolatClicked = false;
-            }
-        });
+        // Event handlers for buttons
+        egyedButton.setOnAction(e -> controller.handleEgyedButtonClick());
+        kapcsolatButton.setOnAction(e -> controller.handleKapcsolatButtonClick());
+
         // Create a VBox layout container for buttons
         VBox buttonPanel = new VBox(10); // 10 is spacing between buttons
         buttonPanel.setAlignment(Pos.TOP_LEFT); // Align buttons to the top left
@@ -57,19 +42,17 @@ public class App extends Application {
         rootPane.getChildren().addAll(root, buttonPanel);
         Scene scene = new Scene(rootPane, 500, 300);
 
-        // Event handler for mouse click to draw rectangles
         scene.setOnMouseClicked(event -> {
-            if (egyedclicked){
-                Rectangle rectangle = new Rectangle(event.getX(), event.getY(), 100, 50);
-                rectangle.setFill(Color.TRANSPARENT); // Set fill color to transparent
-                rectangle.setStroke(Color.BLACK);
-                root.getChildren().add(rectangle);
-            }
-            if (kapcsolatClicked){
-                Polygon diamond = new Polygon();
-                root.getChildren().add(diamond);
-            }
-        });
+                if (controller.isEntityClicked()){
+                    Entity entity = new Entity(event.getX(), event.getY(), 100, 50);
+                    entity.setFill(Color.TRANSPARENT); // Set fill color to transparent
+                    entity.setStroke(Color.BLACK);
+                    root.getChildren().add(entity);
+                }
+                if (controller.isRelationshipClicked()){
+
+                }
+            });
 
         // Set the scene to the stage
         stage.setTitle("Ek_editor");
