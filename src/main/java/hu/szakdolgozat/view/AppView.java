@@ -3,6 +3,7 @@ package hu.szakdolgozat.view;
 
 import hu.szakdolgozat.controller.ApplicationController;
 import hu.szakdolgozat.model.Entity;
+import hu.szakdolgozat.model.Relation;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -50,7 +51,13 @@ public class AppView extends Application {
                     root.getChildren().add(entity);
                 }
                 if (controller.isRelationshipClicked()){
-
+                    Relation polygon = new Relation(
+                            event.getX(), event.getY(),
+                            event.getX() + 50, event.getY() - 25,
+                            event.getX() + 100, event.getY(),
+                            event.getX() + 50, event.getY() + 25
+                    );
+                    root.getChildren().add(polygon);
                 }
             });
 
