@@ -3,18 +3,21 @@ package hu.szakdolgozat.controller;
 import hu.szakdolgozat.model.Entity;
 import hu.szakdolgozat.model.Relation;
 import hu.szakdolgozat.view.AppView;
+import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
 public class ApplicationController {
-    private Entity currentEntity;
     private boolean entityClicked = false;
     private boolean relationshipClicked = false;
-    // Add other model components as needed
+    private boolean attributeClicked = false;
 
+    //handle buttons
     public void handleEgyedButtonClick() {
+        relationshipClicked = false;
+        attributeClicked = false;
         if (!entityClicked) {
             entityClicked = true;
         } else {
@@ -24,13 +27,23 @@ public class ApplicationController {
 
     public void handleKapcsolatButtonClick() {
         entityClicked = false;
+        attributeClicked = false;
         if (!relationshipClicked) {
             relationshipClicked = true;
         } else {
             relationshipClicked = false;
         }
     }
-
+    public void handleAttributeButtonClick() {
+        entityClicked = false;
+        relationshipClicked = false;
+        if (!attributeClicked) {
+            attributeClicked = true;
+        } else {
+            attributeClicked = false;
+        }
+    }
+    //getters
     public boolean isEntityClicked() {
         return entityClicked;
     }
@@ -38,23 +51,8 @@ public class ApplicationController {
     public boolean isRelationshipClicked() {
         return relationshipClicked;
     }
+    public boolean isAttributeClicked() {
+        return attributeClicked;
+    }
 
-    public Entity handleSceneClickEntity(MouseEvent event) {
-        if (entityClicked) {
-            // Create and add entity
-            return new Entity(event.getX(), event.getY(), 50, 30);
-        }
-        return null;
-    }
-    public Relation handleSceneClickRelation(MouseEvent event){
-        if (isRelationshipClicked()){
-            Relation polygon = new Relation();
-            polygon.getPoints().addAll(new Double[]{
-                    0.0, 0.0,
-                    20.0, 10.0,
-                    10.0, 20.0 });
-            return polygon;
-        }
-        return null;
-    }
 }

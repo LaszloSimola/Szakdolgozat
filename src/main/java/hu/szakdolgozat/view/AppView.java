@@ -2,10 +2,12 @@
 package hu.szakdolgozat.view;
 
 import hu.szakdolgozat.controller.ApplicationController;
+import hu.szakdolgozat.model.Attribute;
 import hu.szakdolgozat.model.Entity;
 import hu.szakdolgozat.model.Relation;
 import javafx.application.Application;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
@@ -18,10 +20,12 @@ import javafx.stage.Stage;
 
 public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
+    private Node selectedNode;
 
     @Override
     public void start(Stage stage) {
-        // Create buttons
+
+        // buttons
         Button egyedButton = new Button("Egyed");
         Button kapcsolatButton = new Button("Kapcsolat");
         Button attributumButton = new Button("Attributum");
@@ -31,35 +35,64 @@ public class AppView extends Application {
         // Event handlers for buttons
         egyedButton.setOnAction(e -> controller.handleEgyedButtonClick());
         kapcsolatButton.setOnAction(e -> controller.handleKapcsolatButtonClick());
+        attributumButton.setOnAction(e->controller.handleAttributeButtonClick());
 
-        // Create a VBox layout container for buttons
-        VBox buttonPanel = new VBox(10); // 10 is spacing between buttons
-        buttonPanel.setAlignment(Pos.TOP_LEFT); // Align buttons to the top left
-        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton); // Add buttons to the VBox
+        // Vbox for the buttons
+        VBox buttonPanel = new VBox(10);
+        buttonPanel.setAlignment(Pos.TOP_LEFT);
+        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton);
 
-        // Set the scene with buttonPanel and root as root and specify its size
+
         StackPane rootPane = new StackPane();
-
         rootPane.getChildren().addAll(root, buttonPanel);
-        Scene scene = new Scene(rootPane, 500, 300);
+        Scene scene = new Scene(rootPane, 700, 500);
 
+
+        //mouseclick events
         scene.setOnMouseClicked(event -> {
-                if (controller.isEntityClicked()){
-                    Entity entity = new Entity(event.getX(), event.getY(), 100, 50);
-                    entity.setFill(Color.TRANSPARENT); // Set fill color to transparent
-                    entity.setStroke(Color.BLACK);
-                    root.getChildren().add(entity);
+            if (controller.isEntityClicked()) {
+                double clickX  = event.getX();
+                double clickY  = event.getY();
+                Entity entity = new Entity(clickX, clickY , 100, 50);
+                entity.setFill(Color.TRANSPARENT); // Set fill color to transparent
+                entity.setStroke(Color.BLACK);
+                scene.setOnMouseReleased(event1 -> {
+                    if ((Math.abs(event.getX() - event1.getX()) < 1) && (Math.abs(event.getY() - event1.getY()) < 1)){
+                        root.getChildren().add(entity);
+                    }else{
+                        return;
+                    }
+                });
+            }
+            if (controller.isRelationshipClicked()) {
+                Relation polygon = new Relation(
+                        event.getX(), event.getY(),
+                        event.getX() + 50, event.getY() - 25,
+                        event.getX() + 100, event.getY(),
+                        event.getX() + 50, event.getY() + 25
+                );
+                root.getChildren().add(polygon);
+            }
+            if (controller.isAttributeClicked()) {
+                Attribute attribute = new Attribute(event.getX(), event.getY());
+                attribute.setCenterX(event.getX());
+                attribute.setCenterY(event.getY());
+                attribute.setRadiusX(70);
+                attribute.setRadiusY(40);
+                attribute.setFill(Color.TRANSPARENT); // Set fill color to transparent
+                attribute.setStroke(Color.BLACK);
+                root.getChildren().add(attribute);
+            }
+        });
+        scene.setOnMousePressed(e -> {
+            for (Node node:root.getChildren()) {
+                if (node.contains(e.getX(),e.getY())){
+                    selectedNode = node;
+                    System.out.println("pressed");
                 }
-                if (controller.isRelationshipClicked()){
-                    Relation polygon = new Relation(
-                            event.getX(), event.getY(),
-                            event.getX() + 50, event.getY() - 25,
-                            event.getX() + 100, event.getY(),
-                            event.getX() + 50, event.getY() + 25
-                    );
-                    root.getChildren().add(polygon);
-                }
-            });
+            }
+        });
+
 
         // Set the scene to the stage
         stage.setTitle("Ek_editor");
@@ -70,4 +103,5 @@ public class AppView extends Application {
     public static void main(String[] args) {
         launch();
     }
+
 }
