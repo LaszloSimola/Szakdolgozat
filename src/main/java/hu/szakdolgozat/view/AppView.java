@@ -22,6 +22,8 @@ public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
     private Node selectedNode;
 
+
+
     @Override
     public void start(Stage stage) {
 
@@ -33,8 +35,8 @@ public class AppView extends Application {
         Pane root = new Pane();
 
         // Event handlers for buttons
-        egyedButton.setOnAction(e -> controller.handleEgyedButtonClick());
-        kapcsolatButton.setOnAction(e -> controller.handleKapcsolatButtonClick());
+        egyedButton.setOnAction(e -> controller.handleEntityButtonClick());
+        kapcsolatButton.setOnAction(e -> controller.handleRelationButtonClick());
         attributumButton.setOnAction(e->controller.handleAttributeButtonClick());
 
         // Vbox for the buttons
@@ -42,28 +44,47 @@ public class AppView extends Application {
         buttonPanel.setAlignment(Pos.TOP_LEFT);
         buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton);
 
-
         StackPane rootPane = new StackPane();
         rootPane.getChildren().addAll(root, buttonPanel);
         Scene scene = new Scene(rootPane, 700, 500);
 
-
         //mouseclick events
         scene.setOnMouseClicked(event -> {
+            double clickX = event.getX();
+            double clickY = event.getY();
+
+            // make an entity to the scene
             if (controller.isEntityClicked()) {
-                double clickX  = event.getX();
-                double clickY  = event.getY();
-                Entity entity = new Entity(clickX, clickY , 100, 50);
-                entity.setFill(Color.TRANSPARENT); // Set fill color to transparent
-                entity.setStroke(Color.BLACK);
-                scene.setOnMouseReleased(event1 -> {
-                    if ((Math.abs(event.getX() - event1.getX()) < 1) && (Math.abs(event.getY() - event1.getY()) < 1)){
-                        root.getChildren().add(entity);
-                    }else{
-                        return;
-                    }
-                });
+
+                System.out.println("clicked");
+                Entity entity = new Entity(clickX, clickY);
+                selectedNode = entity;
+                controller.setEntityClicked(false);
+                root.getChildren().add(entity);
+
+                //deselector for entities
+               if (selectedNode != null) {
+                   for (Node node : root.getChildren()) {
+                       if (node instanceof Entity && node != selectedNode) {
+                           ((Entity) node).setSelected(false);
+                           System.out.println("others deselected");
+                       }
+                   }
+               }
             }
+            // selector for existing entities
+            for (Node node : root.getChildren()) {
+                if (node instanceof Entity && node.contains(event.getX(),event.getY())){
+                    selectedNode = node;
+                    System.out.println("got selected this");
+                    ((Entity) node).setSelected(true);
+                }else{
+                    assert node instanceof Entity;
+                    ((Entity)node).setSelected(false);
+                    System.out.println("other deselect");
+                }
+            }
+
             if (controller.isRelationshipClicked()) {
                 Relation polygon = new Relation(
                         event.getX(), event.getY(),
@@ -84,20 +105,17 @@ public class AppView extends Application {
                 root.getChildren().add(attribute);
             }
         });
-        scene.setOnMousePressed(e -> {
-            for (Node node:root.getChildren()) {
-                if (node.contains(e.getX(),e.getY())){
-                    selectedNode = node;
-                    System.out.println("pressed");
-                }
-            }
-        });
+
+
+
 
 
         // Set the scene to the stage
-        stage.setTitle("Ek_editor");
-        stage.setScene(scene);
-        stage.show();
+           stage.setTitle("Ek_editor");
+           stage.setScene(scene);
+           stage.show();
+
+
     }
 
     public static void main(String[] args) {

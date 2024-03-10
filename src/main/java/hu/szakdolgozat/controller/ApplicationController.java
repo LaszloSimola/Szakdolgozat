@@ -15,7 +15,7 @@ public class ApplicationController {
     private boolean attributeClicked = false;
 
     //handle buttons
-    public void handleEgyedButtonClick() {
+    public void handleEntityButtonClick() {
         relationshipClicked = false;
         attributeClicked = false;
         if (!entityClicked) {
@@ -25,7 +25,7 @@ public class ApplicationController {
         }
     }
 
-    public void handleKapcsolatButtonClick() {
+    public void handleRelationButtonClick() {
         entityClicked = false;
         attributeClicked = false;
         if (!relationshipClicked) {
@@ -47,7 +47,6 @@ public class ApplicationController {
     public boolean isEntityClicked() {
         return entityClicked;
     }
-
     public boolean isRelationshipClicked() {
         return relationshipClicked;
     }
@@ -55,4 +54,15 @@ public class ApplicationController {
         return attributeClicked;
     }
 
+    public void setEntityClicked(boolean entityClicked) {
+        this.entityClicked = entityClicked;
+    }
+
+    public void setRelationshipClicked(boolean relationshipClicked) {
+        this.relationshipClicked = relationshipClicked;
+    }
+
+    public void setAttributeClicked(boolean attributeClicked) {
+        this.attributeClicked = attributeClicked;
+    }
 }
