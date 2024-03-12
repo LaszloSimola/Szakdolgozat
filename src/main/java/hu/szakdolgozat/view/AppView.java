@@ -21,6 +21,9 @@ import javafx.stage.Stage;
 public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
     private Node selectedNode;
+    private double mouseDownX ;
+    private double mouseDownY ;
+
 
 
 
@@ -63,14 +66,14 @@ public class AppView extends Application {
                 root.getChildren().add(entity);
 
                 //deselector for entities
-               if (selectedNode != null) {
-                   for (Node node : root.getChildren()) {
-                       if (node instanceof Entity && node != selectedNode) {
-                           ((Entity) node).setSelected(false);
-                           System.out.println("others deselected");
-                       }
-                   }
-               }
+                if (selectedNode != null) {
+                    for (Node node : root.getChildren()) {
+                        if (node instanceof Entity && node != selectedNode) {
+                            ((Entity) node).setSelected(false);
+                            System.out.println("others deselected");
+                        }
+                    }
+                }
             }
             // selector for existing entities
             for (Node node : root.getChildren()) {
@@ -106,14 +109,27 @@ public class AppView extends Application {
             }
         });
 
-
+        scene.setOnMousePressed(e -> {
+            mouseDownX = e.getX();
+            mouseDownY = e.getY();
+            for (Node node : root.getChildren()) {
+                if (node instanceof Entity && node.contains(e.getX(),e.getY())){
+                    ((Entity)selectedNode).setX(mouseDownX);
+                    ((Entity) selectedNode).setY(mouseDownY);
+                }
+            }
+        });
+        scene.setOnMouseDragged(e -> {
+            ((Entity)selectedNode).setX(Math.min(e.getX(), mouseDownX));
+            ((Entity)selectedNode).setY(Math.min(e.getY(), mouseDownY));
+        });
 
 
 
         // Set the scene to the stage
-           stage.setTitle("Ek_editor");
-           stage.setScene(scene);
-           stage.show();
+        stage.setTitle("Ek_editor");
+        stage.setScene(scene);
+        stage.show();
 
 
     }
