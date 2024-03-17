@@ -1,0 +1,25 @@
+.action-button {
+    -fx-background-color: #4CAF50; /* Green */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+}
+
+.action-button:hover {
+    -fx-background-color: #45a049; /* Darker Green */
+}
+
+.action-button:pressed {
+    -fx-background-color: #0d8a3f; /* Even Darker Green */
+}
+
+.button-panel {
+    -fx-background-color: #656565;
+
+}
+
+.root {
+
+}

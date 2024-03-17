@@ -36,7 +36,7 @@
                         <!-- Usage: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>hu.szakdolgozat.view.AppView</mainClass>
+                            <mainClass>hu.szakdolgozat/hu.szakdolgozat.view.AppView</mainClass>
                         </configuration>
                     </execution>
                 </executions>
