@@ -4,8 +4,15 @@
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-padding: 10px 20px;
-    -fx-border-radius: 5px;
+    -fx-border-radius: 5px; /* Border radius */
+    -fx-background-radius: 20px; /* Background radius */
+    -fx-background-size: 10px;
+    -fx-min-width: 120px; /* Set the minimum width */
+    -fx-min-height: 40px; /* Set the minimum height */
+    -fx-border-width: 2px; /* Border width */
 }
+
+
 
 .action-button:hover {
     -fx-background-color: #45a049; /* Darker Green */
@@ -19,7 +26,11 @@
     -fx-background-color: #656565;
 
 }
-
 .root {
-
+    -fx-background-color: #D3D3D333,
+    linear-gradient(from 0.5px 0.0px to 10.5px  0.0px, repeat, black 5%, transparent 5%),
+    linear-gradient(from 0.0px 0.5px to  0.0px 10.5px, repeat, black 5%, transparent 5%);
 }
+
+
+

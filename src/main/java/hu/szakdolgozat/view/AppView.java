@@ -28,7 +28,6 @@ public class AppView extends Application {
     private double mouseDownX ;
     private double mouseDownY ;
 
-
     @Override
     public void start(Stage stage) {
 
@@ -42,7 +41,6 @@ public class AppView extends Application {
         kapcsolatButton.getStyleClass().add("action-button");
         attributumButton.getStyleClass().add("action-button");
 
-
         // Event handlers for buttons
         egyedButton.setOnAction(e -> controller.handleEntityButtonClick());
         kapcsolatButton.setOnAction(e -> controller.handleRelationButtonClick());
@@ -51,19 +49,16 @@ public class AppView extends Application {
         // Vbox for the buttons
         VBox buttonPanel = new VBox(10);
         buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton);
+        buttonPanel.setPadding(new Insets(7));
 
         //style for the buttonpanel
         buttonPanel.getStyleClass().add("button-panel");
 
         BorderPane borderPane = new BorderPane();
-
         borderPane.setLeft(buttonPanel);
-        BorderPane.setMargin(buttonPanel, new Insets(0, 0, 0, 0));
-
 
         Pane root = new Pane();
         borderPane.setCenter(root);
-
         root.getStyleClass().add("root");
 
         Scene scene = new Scene(borderPane, 700, 500);
