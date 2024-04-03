@@ -70,99 +70,80 @@ public class AppView extends Application {
             System.err.println("Wrong path given!");
         }
 
-
-        root.setOnMouseClicked(event -> {
+        root.setOnMousePressed(event -> {
+            mouseDownX = event.getX();
+            mouseDownY = event.getY();
             double clickX = event.getX();
             double clickY = event.getY();
-
-            double rootClickX = clickX;
-            double rootClickY = clickY;
-
-            // make an entity to the scene
-            if (controller.isEntityClicked()) {
-                System.out.println("clicked");
-                Entity entity = new Entity(rootClickX, rootClickY);
-                selectedNode = entity;
-                ((Entity)selectedNode).setSelected(true);
-                controller.setEntityClicked(false);
+            if (controller.isEntityClicked()){
+                // Create a new entity
+                Entity entity = new Entity(clickX, clickY);
                 root.getChildren().add(entity);
+                entity.setSelected(true);
+                selectedNode = entity;
 
-                //deselector for entities
-                if (selectedNode != null) {
-                    for (Node node : root.getChildren()) {
-                        if (node instanceof Entity && node != selectedNode){
-                            ((Entity) node).setSelected(false);
-                            selectedNode = null;
-                            System.out.println("others deselected");
-                        }
-                    }
-                }
-            }
-            // selector for existing entities
-            for (Node node : root.getChildren()) {
-                if (!controller.isEntityClicked()) {
-                    if (node instanceof Entity && node.contains(rootClickX, rootClickY)) {
-                        selectedNode = node;
-                        System.out.println("got selected this");
-                        ((Entity) node).setSelected(true);
-                    } else {
-                        assert node instanceof Entity;
+                // Deselect all other entities
+                for (Node node : root.getChildren()) {
+                    if (node instanceof Entity && node != entity) {
                         ((Entity) node).setSelected(false);
-                        System.out.println("other deselect");
+                        System.out.println("deselected");
                     }
                 }
-            }
+               controller.setEntityClicked(false);
+            }else {
+                // selector for entities
+                for (Node node : root.getChildren()) {
+                    if (node.contains(clickX, clickY)) {
+                        selectedNode = node;
+                        ((Entity) selectedNode).setSelected(true);
+                        System.out.println("Entity pressed.");
 
-            if (controller.isRelationshipClicked()) {
-                Relation polygon = new Relation(
-                        rootClickX, rootClickY,
-                        rootClickX + 50, rootClickY - 25,
-                        rootClickX + 100, rootClickY,
-                        rootClickX + 50, rootClickY + 25
-                );
-                root.getChildren().add(polygon);
-            }
-            if (controller.isAttributeClicked()) {
-                Attribute attribute = new Attribute(rootClickX, rootClickY);
-                attribute.setCenterX(rootClickX);
-                attribute.setCenterY(rootClickY);
-                attribute.setRadiusX(70);
-                attribute.setRadiusY(40);
-                attribute.setFill(Color.TRANSPARENT); // Set fill color to transparent
-                attribute.setStroke(Color.BLACK);
-                root.getChildren().add(attribute);
-            }
-        });
-
-        //seton mousepressed event implementation
-        root.setOnMousePressed(event -> {
-                if (!controller.isEntityClicked()) {
-                    for (Node node : root.getChildren()) {
-                        if (node instanceof Entity && node.contains(event.getX(), event.getY())) {
-                            selectedNode = node;
-                            ((Entity) selectedNode).setSelected(true);
-                            mouseDownX = event.getX();
-                            mouseDownY = event.getY();
-                            ((Entity) selectedNode).setX(mouseDownX);
-                            ((Entity) selectedNode).setY(mouseDownY);
-                            System.out.println("Entity clicked.");
+                        //deselect others at the same time
+                        for (Node n : root.getChildren()) {
+                            if (n instanceof Entity && n != selectedNode) {
+                                ((Entity) n).setSelected(false);
+                                System.out.println("others deselected");
+                            }
                         }
+                        break;
+
+                    }else{
+                        for (Node n : root.getChildren()) {
+                            if (n instanceof Entity && !n.contains(clickX,clickY)) {
+                                ((Entity) n).setSelected(false);
+                                selectedNode = null;
+                                System.out.println("others deselected");
+                            }
+                        }
+                        System.out.println("else");
+
                     }
-                }if (selectedNode != null){
-                selectedNode.setOnMouseDragged(e -> {
-                    if (selectedNode != null && selectedNode instanceof Entity) {
-                        double deltaX = e.getX() - mouseDownX;
-                        double deltaY = e.getY() - mouseDownY;
-                        ((Entity) selectedNode).setX(((Entity) selectedNode).getX() + deltaX);
-                        ((Entity) selectedNode).setY(((Entity) selectedNode).getY() + deltaY);
-                        mouseDownX = e.getX();
-                        mouseDownY = e.getY();
-                        System.out.println("dragged");
-                    }
-                });
+                }
+
             }
         });
 
+        root.setOnMouseDragged(event -> {
+            // If an entity is selected, drag it
+            if (selectedNode != null && selectedNode instanceof Entity) {
+                double deltaX = event.getX() - mouseDownX;
+                double deltaY = event.getY() - mouseDownY;
+                ((Entity) selectedNode).setX(((Entity) selectedNode).getX() + deltaX);
+                ((Entity) selectedNode).setY(((Entity) selectedNode).getY() + deltaY);
+                mouseDownX = event.getX();
+                mouseDownY = event.getY();
+                System.out.println("Dragged");
+            }
+        });
+
+       //root.setOnMouseReleased(event -> {
+       //    // Deselect the entity
+       //    if (selectedNode != null && selectedNode instanceof Entity) {
+       //        ((Entity) selectedNode).setSelected(false);
+       //        selectedNode = null;
+       //        System.out.println("Entity released.");
+       //    }
+       //});
 
         // Set the scene to the stage
         stage.setTitle("Ek_editor");
@@ -171,6 +152,16 @@ public class AppView extends Application {
 
 
     }
+    public void deselector(Pane root){
+        for (Node n : root.getChildren()) {
+            if (n instanceof Entity && n != selectedNode) {
+                ((Entity) n).setSelected(false);
+                System.out.println("others deselected");
+            }
+        }
+    }
+
+
 
     public static void main(String[] args) {
         launch();

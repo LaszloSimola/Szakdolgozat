@@ -5,11 +5,13 @@ import hu.szakdolgozat.model.Relation;
 import hu.szakdolgozat.view.AppView;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
 public class ApplicationController {
+    private Node selectedNode;
     private boolean entityClicked = false;
     private boolean relationshipClicked = false;
     private boolean attributeClicked = false;
@@ -65,4 +67,5 @@ public class ApplicationController {
     public void setAttributeClicked(boolean attributeClicked) {
         this.attributeClicked = attributeClicked;
     }
+
 }
