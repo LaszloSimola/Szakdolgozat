@@ -4,29 +4,29 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class Entity extends Rectangle {
+public class Entity extends Rectangle implements Selectable,Draggable {
     private double posX;
     private double posY;
-    private int height,width;
 
     boolean isSelected = false;
 
     public Entity() {
     }
+
     public Entity(double posX, double posY) {
         this(posX, posY, 100, 50); // Default values for width and height
         this.setPosX(posX);
         this.setPosY(posY);
-        this.setFill(Color.TRANSPARENT);
+        this.setFill(Color.WHITE);
         this.setSelected(true);
     }
 
 
     public Entity(double posX, double posY, double width, double height) {
-        super(posX,posY , width, height);
+        super(posX, posY, width, height);
         this.setPosX(posX);
         this.setPosY(posY);
-        this.setFill(Color.TRANSPARENT);
+        this.setFill(Color.WHITE);
         this.setStroke(Color.BLACK);
         this.setSelected(true);
     }
@@ -36,35 +36,36 @@ public class Entity extends Rectangle {
         return posX;
     }
 
-    public void setPosX(double posX) {
-        this.posX = posX;
+    public void setPosX(double x) {
+        posX = x;
+        super.setX(x);
     }
 
     public double getPosY() {
         return posY;
     }
 
-    public void setPosY(double posY) {
-        this.posY = posY;
+    public void setPosY(double y) {
+        posY = y;
+        super.setY(y);
+    }
+
+    @Override
+    public void drag(double deltaX, double deltaY) {
+        setPosX(getPosX() + deltaX);
+        setPosY(getPosY() + deltaY);
     }
 
     public boolean isSelected() {
         return isSelected;
     }
+
     public void setSelected(boolean selected) {
-        if (selected){
+        if (selected) {
             this.setStroke(Color.RED);
-        }else{
+        } else {
             this.setStroke(Color.BLACK);
         }
         isSelected = selected;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
     }
 }
