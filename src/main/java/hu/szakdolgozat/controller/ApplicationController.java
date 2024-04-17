@@ -45,6 +45,8 @@ public class ApplicationController {
             attributeClicked = false;
         }
     }
+
+
     //getters
     public boolean isEntityClicked() {
         return entityClicked;
