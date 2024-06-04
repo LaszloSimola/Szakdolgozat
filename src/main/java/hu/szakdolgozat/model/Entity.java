@@ -1,36 +1,67 @@
 package hu.szakdolgozat.model;
 
-import javafx.scene.input.MouseEvent;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
-public class Entity extends Rectangle implements Selectable,Draggable {
+public class Entity extends StackPane implements Selectable, Draggable {
     private double posX;
     private double posY;
+    private Color strokeColor = Color.BLACK;
 
     boolean isSelected = false;
+    private Rectangle rectangle;
+    private Text textNode;
+
+    public Text getTextNode() {
+        return textNode;
+    }
+
+    public void setTextNode(String textContent) {
+        if (textNode == null) {
+            textNode = new Text();
+            textNode.setFont(Font.font(12));
+            textNode.setFill(Color.BLACK);
+            textNode.setTextOrigin(VPos.CENTER);
+            textNode.setTextAlignment(TextAlignment.CENTER);
+            getChildren().add(textNode);
+        }
+        textNode.setText(textContent);
+        setAlignment(textNode, Pos.CENTER); // Center the text within the StackPane
+    }
 
     public Entity() {
+        this(0, 0, 100, 50); // Default values for position, width, and height
     }
 
     public Entity(double posX, double posY) {
         this(posX, posY, 100, 50); // Default values for width and height
-        this.setPosX(posX);
-        this.setPosY(posY);
-        this.setFill(Color.WHITE);
-        this.setSelected(true);
     }
-
 
     public Entity(double posX, double posY, double width, double height) {
-        super(posX, posY, width, height);
-        this.setPosX(posX);
-        this.setPosY(posY);
-        this.setFill(Color.WHITE);
-        this.setStroke(Color.BLACK);
-        this.setSelected(true);
-    }
+        this.posX = posX;
+        this.posY = posY;
 
+        rectangle = new Rectangle(width, height);
+        rectangle.setFill(Color.WHITE);
+        rectangle.setStroke(strokeColor);
+
+        getChildren().add(rectangle); // Add the rectangle first
+        setTextNode("Entity"); // Add the text node and set its initial text
+
+        setAlignment(rectangle, Pos.CENTER); // Center the rectangle within the StackPane
+        setLayoutX(posX);
+        setLayoutY(posY);
+
+        // Ensure that text is always centered
+        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+    }
 
     public double getPosX() {
         return posX;
@@ -38,7 +69,7 @@ public class Entity extends Rectangle implements Selectable,Draggable {
 
     public void setPosX(double x) {
         posX = x;
-        super.setX(x);
+        setLayoutX(x);
     }
 
     public double getPosY() {
@@ -47,7 +78,16 @@ public class Entity extends Rectangle implements Selectable,Draggable {
 
     public void setPosY(double y) {
         posY = y;
-        super.setY(y);
+        setLayoutY(y);
+    }
+
+    public Color getStrokeColor() {
+        return strokeColor;
+    }
+
+    public void setStrokeColor(Color strokeColor) {
+        this.strokeColor = strokeColor;
+        rectangle.setStroke(strokeColor);
     }
 
     @Override
@@ -62,10 +102,19 @@ public class Entity extends Rectangle implements Selectable,Draggable {
 
     public void setSelected(boolean selected) {
         if (selected) {
-            this.setStroke(Color.RED);
+            rectangle.setStroke(Color.RED);
         } else {
-            this.setStroke(Color.BLACK);
+            rectangle.setStroke(strokeColor);
         }
         isSelected = selected;
+    }
+
+    public Rectangle getRectangle() {
+        return rectangle;
+    }
+
+    @Override
+    public boolean contains(double x, double y) {
+        return rectangle.contains(x - getLayoutX(), y - getLayoutY());
     }
 }

@@ -4,7 +4,6 @@ package hu.szakdolgozat.view;
 import hu.szakdolgozat.controller.ApplicationController;
 import hu.szakdolgozat.model.*;
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
 import javafx.css.Style;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
@@ -20,13 +19,19 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
     private Node selectedNode;
+    private Node one, other;
     private double mouseDownX ;
     private double mouseDownY ;
+    private boolean isConnectButtonVisible = false;
+    List<OwnLine> lines = new ArrayList<>();
 
     @Override
     public void start(Stage stage) {
@@ -36,24 +41,36 @@ public class AppView extends Application {
         Button kapcsolatButton = new Button("Kapcsolat");
         Button attributumButton = new Button("Attributum");
         Button deleteButton = new Button("Delete");
+        Button connectButton = new Button("Connect");
+        Button checkbutton = new Button("Check the lines");
 
         //style for the buttons
         egyedButton.getStyleClass().add("action-button");
         kapcsolatButton.getStyleClass().add("action-button");
         attributumButton.getStyleClass().add("action-button");
+        connectButton.getStyleClass().add("connect-button");
         deleteButton.getStyleClass().add("delete-button");
-
-
+        checkbutton.getStyleClass().add("action-button");
 
 
         // Event handlers for buttons
         egyedButton.setOnAction(e -> controller.handleEntityButtonClick());
         kapcsolatButton.setOnAction(e -> controller.handleRelationButtonClick());
         attributumButton.setOnAction(e -> controller.handleAttributeButtonClick());
+        connectButton.setOnAction(e -> {
+            controller.handleConnectButton();
+            if (controller.isConnectClicked()){
+                connectButton.getStyleClass().add("connect-button-clicked");
+            }else{
+                connectButton.getStyleClass().remove("connect-button-clicked");
+            }
+            isConnectButtonVisible = !isConnectButtonVisible;
+        });
+
 
         // Vbox for the buttons
         VBox buttonPanel = new VBox(10);
-        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton, deleteButton);
+        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton, deleteButton,connectButton,checkbutton);
         buttonPanel.setPadding(new Insets(7));
 
         //style for the buttonpanel
@@ -69,11 +86,10 @@ public class AppView extends Application {
         Scene scene = new Scene(borderPane, 700, 500);
 
         /*
-         * vonal rajzolas és összekkötés megvalósítása és a többi elemre megcsinalni amit erre
-         * draggeles vonalrajzolasnal a lekattintott ponttol
+         * méretezé és szin egyebek modositása
          * */
 
-        // Load css stylesheet
+        // Load css
         try {
             scene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
         }catch (Exception e){
@@ -81,12 +97,59 @@ public class AppView extends Application {
         }
 
         deleteButton.setOnAction(e -> {
+            boolean bounded = false;
             if (selectedNode != null) {
-                root.getChildren().remove(selectedNode);
-                selectedNode = null;
+                if (selectedNode instanceof Line){
+                    lines.remove(selectedNode);
+                    root.getChildren().remove(selectedNode);
+                    selectedNode = null;
+                } else if (selectedNode instanceof Draggable) {
+                    for (Node node : root.getChildren()) {
+                        if (node instanceof OwnLine) {
+                            OwnLine line = (OwnLine) node;
+                            if (LineChecker.isLineEndBoundToEntity(line, selectedNode)) {
+                                line.startXProperty().unbind();
+                                line.startYProperty().unbind();
+                            }
+                        }
+                    }
+                    root.getChildren().remove(selectedNode);
+                    selectedNode = null;
+
+                    // if line is not connected to a node then it should be deleted, after ane entity was deleted
+                    Iterator<OwnLine> iterator = lines.iterator();
+                    while (iterator.hasNext()) {
+                        Line line = iterator.next();
+                        if (LineChecker.isBothEndsBound(line)) {
+                            System.out.println("Both ends are bound.");
+                        } else {
+                            root.getChildren().remove(line);
+                            iterator.remove();
+                        }
+                    }
+
+                }
             }
         });
 
+        // ha le van totolve egy valami akkor automata törles vonalra
+        // hibak osszeszedése amik lehetnek vonalvégek haromszog, öröklő kapcsolat
+        // kulcsok gyenge egyed stackpane
+        // szoveg, kimentés xml v json
+
+        checkbutton.setOnAction(e -> {
+            Iterator<OwnLine> iterator = lines.iterator();
+            while (iterator.hasNext()) {
+                Line line = iterator.next();
+                if (LineChecker.isBothEndsBound(line)) {
+                    System.out.println("Both ends are bound.");
+                } else {
+                    root.getChildren().remove(line);
+                    iterator.remove();
+                }
+            }
+
+        });
 
         root.setOnMousePressed(event -> {
             mouseDownX = event.getX();
@@ -94,33 +157,32 @@ public class AppView extends Application {
             double clickX = event.getX();
             double clickY = event.getY();
 
-                // Deselect others at the same time
-                for (Node n : root.getChildren()) {
-                    if (n != selectedNode) {
-                        if (n instanceof Selectable) {
-                            ((Selectable) n).setSelected(false);
-                        }
+            // Deselect others at the same time
+            for (Node n : root.getChildren()) {
+                if (n != selectedNode) {
+                    if (n instanceof Selectable) {
+                        ((Selectable) n).setSelected(false);
                     }
                 }
+            }
 
-            if (controller.isEntityClicked()){
+            if (controller.isEntityClicked()) {
                 // Create a new entity
-                Entity entity = new Entity(clickX, clickY);
+                Entity entity = new Entity(clickX, clickY, 100, 50);
                 root.getChildren().add(entity);
                 entity.setSelected(true);
                 selectedNode = entity;
+                entity.setTextNode("Entity");
 
                 // Deselect all other nodes
                 for (Node node : root.getChildren()) {
                     if (node instanceof Selectable && node != entity) {
                         ((Selectable) node).setSelected(false);
-                        System.out.println("deselected");
                     }
                 }
                 controller.setEntityClicked(false);
-
             }else if(controller.isAttributeClicked()){
-                Attribute attribute = new Attribute(clickX,clickY);
+                Attribute attribute = new Attribute(clickX,clickY,50,115);
                 root.getChildren().add(attribute);
                 attribute.setSelected(true);
                 selectedNode = attribute;
@@ -150,59 +212,54 @@ public class AppView extends Application {
                     }
                 }
                 controller.setRelationshipClicked(false);
-            }else{
-                if (selectedNode != null) {
-                    // Check if a second node is clicked
-                    for (Node node : root.getChildren()) {
-                        if (node != selectedNode && node.contains(clickX, clickY)) {
-                            // Draw a line between selectedNode and node
-                            Line line = new Line();
-                            line.startXProperty().bind(Bindings.createDoubleBinding(() -> {
-                                Bounds bounds = selectedNode.getBoundsInParent();
-                                return bounds.getMinX() + bounds.getWidth() / 2;
-                            }, selectedNode.boundsInParentProperty()));
-
-                            line.startYProperty().bind(Bindings.createDoubleBinding(() -> {
-                                Bounds bounds = selectedNode.getBoundsInParent();
-                                return bounds.getMinY() + bounds.getHeight() / 2;
-                            }, selectedNode.boundsInParentProperty()));
-
-                            line.endXProperty().bind(Bindings.createDoubleBinding(() -> {
-                                Bounds bounds = node.getBoundsInParent();
-                                return bounds.getMinX() + bounds.getWidth() / 2;
-                            }, node.boundsInParentProperty()));
-
-                            line.endYProperty().bind(Bindings.createDoubleBinding(() -> {
-                                Bounds bounds = node.getBoundsInParent();
-                                return bounds.getMinY() + bounds.getHeight() / 2;
-                            }, node.boundsInParentProperty()));
-
-                            root.getChildren().add(line);
-                            break;
+            }else if(controller.isConnectClicked()){
+                for (Node node : root.getChildren()) {
+                    if (!(node instanceof Line)){
+                        if (node.contains(clickX, clickY)) {
+                            if (one == null) {
+                                one = node;
+                                break;
+                            } else if (one != node) {
+                                other = node;
+                                controller.connectNodes(one, other, root,lines);
+                                one = null;
+                                other = null;
+                                break;
+                            }
                         }
                     }
                 }
-                    // selector for nodes (start from the last node and end at the first)
-                    for (int i = root.getChildren().size() - 1; i >= 0; i--) {
-                        Node node = root.getChildren().get(i);
-                        if (node.contains(clickX, clickY)) {
-                            if (node instanceof Selectable) {
-                                selectedNode = node;
-                                ((Selectable) selectedNode).setSelected(true);
-                                System.out.println("node pressed.");
-                                System.out.println(selectedNode);
-                            }
 
-                            // Deselect others at the same time
-                            for (Node n : root.getChildren()) {
-                                if (n != selectedNode) {
-                                    if (n instanceof Selectable) {
-                                        ((Selectable) n).setSelected(false);
-                                    }
+            }else {
+                // selector for nodes (start from the last node and end at the first)
+                for (int i = root.getChildren().size() - 1; i >= 0; i--) {
+                    Node node = root.getChildren().get(i);
+                    if (node.contains(clickX, clickY)) {
+                        System.out.println("yes");
+                        if (node instanceof StackPane){
+                            node.setOnMouseClicked(e -> {
+                                if (event.getClickCount() == 2){
+                                    new EntityModify((Entity) node);
+                                }
+                            });
+                        }
+                        if (node instanceof Selectable) {
+                            selectedNode = node;
+                            ((Selectable) selectedNode).setSelected(true);
+                            System.out.println("node pressed.");
+                            System.out.println(selectedNode);
+                        }
+
+                        // Deselect others at the same time
+                        for (Node n : root.getChildren()) {
+                            if (n != selectedNode) {
+                                if (n instanceof Selectable) {
+                                    ((Selectable) n).setSelected(false);
                                 }
                             }
-                            break;
-                        }else{
+                        }
+                        break;
+                    }else{
                             selectedNode = null;
                             for (Node deselectednodes: root.getChildren()) {
                                 if (deselectednodes instanceof Selectable) {
@@ -211,33 +268,24 @@ public class AppView extends Application {
                             }
                         }
                     }
-
                     if (selectedNode != null) {
                         selectedNode.toFront();
                     }
-                }
-        });
-
-        root.setOnMouseDragged(event -> {
-            // If a draggable node is selected, drag it
-            double deltaX = event.getX() - mouseDownX;
-            double deltaY = event.getY() - mouseDownY;
-            if (selectedNode != null && selectedNode instanceof Draggable) {
-                ((Draggable) selectedNode).drag(deltaX,deltaY);
-                mouseDownX = event.getX();
-                mouseDownY = event.getY();
-                System.out.println("Node Dragged");
             }
         });
 
-        //root.setOnMouseReleased(event -> {
-        //    // Deselect the entity
-        //    if (selectedNode != null && selectedNode instanceof Entity) {
-        //        ((Entity) selectedNode).setSelected(false);
-        //        selectedNode = null;
-        //        System.out.println("Entity released.");
-        //    }
-        //});
+        root.setOnMouseDragged(event -> {
+            if (!controller.isConnectClicked()){
+                double deltaX = event.getX() - mouseDownX;
+                double deltaY = event.getY() - mouseDownY;
+                if (selectedNode != null && selectedNode instanceof Draggable) {
+                    ((Draggable) selectedNode).drag(deltaX,deltaY);
+                    mouseDownX = event.getX();
+                    mouseDownY = event.getY();
+                    System.out.println("Node Dragged");
+                }
+            }
+        });
 
         // Set the scene to the stage
         stage.setTitle("Ek_editor");
@@ -246,9 +294,6 @@ public class AppView extends Application {
 
 
     }
-
-
-
     public static void main(String[] args) {
         launch();
     }

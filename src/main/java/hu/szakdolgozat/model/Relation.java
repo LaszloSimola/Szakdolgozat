@@ -55,4 +55,5 @@
             }
             getPoints().setAll(points);
         }
+
     }
