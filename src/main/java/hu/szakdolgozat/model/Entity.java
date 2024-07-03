@@ -1,5 +1,7 @@
 package hu.szakdolgozat.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.layout.StackPane;
@@ -9,11 +11,13 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
-public class Entity extends StackPane implements Selectable, Draggable {
+import java.io.Serializable;
+
+public class Entity extends StackPane implements Serializable, Selectable, Draggable {
     private double posX;
     private double posY;
     private Color strokeColor = Color.BLACK;
-
+    private double strokeWidth = 1.0;
     boolean isSelected = false;
     private Rectangle rectangle;
     private Text textNode;
@@ -43,13 +47,14 @@ public class Entity extends StackPane implements Selectable, Draggable {
         this(posX, posY, 100, 50); // Default values for width and height
     }
 
-    public Entity(double posX, double posY, double width, double height) {
+    public Entity(@JsonProperty("x") double posX, @JsonProperty("y") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height) {
         this.posX = posX;
         this.posY = posY;
 
         rectangle = new Rectangle(width, height);
         rectangle.setFill(Color.WHITE);
         rectangle.setStroke(strokeColor);
+        rectangle.setStrokeWidth(strokeWidth);
 
         getChildren().add(rectangle); // Add the rectangle first
         setTextNode("Entity"); // Add the text node and set its initial text
@@ -90,6 +95,15 @@ public class Entity extends StackPane implements Selectable, Draggable {
         rectangle.setStroke(strokeColor);
     }
 
+    public double getStrokeWidth() {
+        return strokeWidth;
+    }
+
+    public void setStrokeWidth(double strokeWidth) {
+        this.strokeWidth = strokeWidth;
+        rectangle.setStrokeWidth(strokeWidth);
+    }
+
     @Override
     public void drag(double deltaX, double deltaY) {
         setPosX(getPosX() + deltaX);
@@ -116,5 +130,68 @@ public class Entity extends StackPane implements Selectable, Draggable {
     @Override
     public boolean contains(double x, double y) {
         return rectangle.contains(x - getLayoutX(), y - getLayoutY());
+    }
+
+    // Convert to a DTO for serialization
+    public EntityDTO toDTO() {
+        return new EntityDTO(posX, posY, rectangle.getWidth(), rectangle.getHeight(), textNode.getText(), strokeColor.toString(), strokeWidth);
+    }
+
+    // Convert from a DTO to an Entity
+    public static Entity fromDTO(EntityDTO dto) {
+        Entity entity = new Entity(dto.getPosX(), dto.getPosY(), dto.getWidth(), dto.getHeight());
+        entity.setTextNode(dto.getText());
+        entity.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
+        entity.setStrokeWidth(dto.getStrokeWidth());
+        return entity;
+    }
+
+    // DTO class for Entity
+    public static class EntityDTO {
+        private double posX;
+        private double posY;
+        private double width;
+        private double height;
+        private String text;
+        private String strokeColor;
+        private double strokeWidth;
+
+        public EntityDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth) {
+            this.posX = posX;
+            this.posY = posY;
+            this.width = width;
+            this.height = height;
+            this.text = text;
+            this.strokeColor = strokeColor;
+            this.strokeWidth = strokeWidth;
+        }
+
+        public double getPosX() {
+            return posX;
+        }
+
+        public double getPosY() {
+            return posY;
+        }
+
+        public double getWidth() {
+            return width;
+        }
+
+        public double getHeight() {
+            return height;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getStrokeColor() {
+            return strokeColor;
+        }
+
+        public double getStrokeWidth() {
+            return strokeWidth;
+        }
     }
 }

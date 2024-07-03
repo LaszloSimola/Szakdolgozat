@@ -34,7 +34,7 @@ public class EntityModify extends Stage {
         ColorPicker colorPicker = new ColorPicker(entity.getStrokeColor());
 
         Text vastagsag = new Text("Vonalvastagság:");
-        Spinner<Integer> vastagsagspinner = new Spinner<>(1, 10, (int) entity.getRectangle().getStrokeWidth());
+        Spinner<Integer> vastagsagspinner = new Spinner<>(1, 10, (int) entity.getStrokeWidth()); // Updated to use entity's strokeWidth
         vastagsagspinner.setEditable(true);
 
         Text gyengeEgyedText = new Text("Gyenge egyed:");
@@ -57,7 +57,7 @@ public class EntityModify extends Stage {
             entity.getRectangle().setWidth(szelessegSpinner.getValue());
             entity.getRectangle().setHeight(magassagSpinner.getValue());
             entity.setStrokeColor(colorPicker.getValue());
-            entity.getRectangle().setStrokeWidth(vastagsagspinner.getValue());
+            entity.setStrokeWidth(vastagsagspinner.getValue()); // Updated to use setter method
             close();
         });
 

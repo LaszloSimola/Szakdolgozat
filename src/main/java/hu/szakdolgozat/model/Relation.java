@@ -1,59 +1,206 @@
-    package hu.szakdolgozat.model;
+package hu.szakdolgozat.model;
 
-    import javafx.scene.paint.Color;
-    import javafx.scene.shape.Polygon;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
+import javafx.geometry.VPos;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    public class Relation extends Polygon implements Selectable, Draggable {
+import java.io.Serializable;
+
+public class Relation extends StackPane implements Serializable, Selectable, Draggable {
+    private double posX;
+    private double posY;
+    private Color strokeColor = Color.BLACK;
+    private double strokeWidth = 1.0;
+    private double size = 1.0; // Example initial scale factor
+
+    boolean isSelected = false;
+    private Polygon polygon;
+    private Text textNode;
+
+    public Text getTextNode() {
+        return textNode;
+    }
+
+    public void setTextNode(String textContent) {
+        if (textNode == null) {
+            textNode = new Text();
+            textNode.setFont(Font.font(12));
+            textNode.setFill(Color.BLACK);
+            textNode.setTextOrigin(VPos.CENTER);
+            textNode.setTextAlignment(TextAlignment.CENTER);
+            getChildren().add(textNode);
+        }
+        textNode.setText(textContent);
+        setAlignment(textNode, Pos.CENTER); // Center the text within the StackPane
+    }
+
+    public Relation(double... points) {
+        this(0, 0, points);
+    }
+
+    public Relation(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("points") double... points) {
+        this.posX = posX;
+        this.posY = posY;
+
+        polygon = new Polygon(points);
+        polygon.setFill(Color.WHITE);
+        polygon.setStroke(strokeColor);
+        polygon.setStrokeWidth(strokeWidth);
+
+        getChildren().add(polygon);
+        setTextNode("Relation");
+
+        setAlignment(polygon, Pos.CENTER);
+        setLayoutX(posX);
+        setLayoutY(posY);
+
+        // Ensure that text is always centered
+        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+    }
+
+    public double getPosX() {
+        return posX;
+    }
+
+    public void setPosX(double x) {
+        posX = x;
+        setLayoutX(x);
+    }
+
+    public double getPosY() {
+        return posY;
+    }
+
+    public void setPosY(double y) {
+        posY = y;
+        setLayoutY(y);
+    }
+
+    public Color getStrokeColor() {
+        return strokeColor;
+    }
+
+    public void setStrokeColor(Color strokeColor) {
+        this.strokeColor = strokeColor;
+        polygon.setStroke(strokeColor);
+    }
+
+    public double getStrokeWidth() {
+        return strokeWidth;
+    }
+
+    public void setStrokeWidth(double strokeWidth) {
+        this.strokeWidth = strokeWidth;
+        polygon.setStrokeWidth(strokeWidth);
+    }
+
+    public double getSize() {
+        return size;
+    }
+
+    public void setSize(double size) {
+        this.size = size;
+        polygon.setScaleX(size); // Adjust scaleX
+        polygon.setScaleY(size); // Adjust scaleY
+    }
+
+    @Override
+    public void drag(double deltaX, double deltaY) {
+        setPosX(getLayoutX() + deltaX);
+        setPosY(getLayoutY() + deltaY);
+        System.out.println("Dragged to posX: " + posX + ", posY: " + posY);
+    }
+
+    @Override
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    @Override
+    public void setSelected(boolean selected) {
+        if (selected) {
+            polygon.setStroke(Color.RED);
+        } else {
+            polygon.setStroke(strokeColor);
+        }
+        isSelected = selected;
+    }
+
+    @Override
+    public boolean contains(double x, double y) {
+        System.out.println(polygon.contains(x,y));
+        return getBoundsInParent().contains(x,y);
+    }
+
+    // Convert to a DTO for serialization
+    public RelationDTO toDTO() {
+        return new RelationDTO(posX, posY, polygon.getPoints().stream().mapToDouble(Double::doubleValue).toArray(), textNode.getText(), strokeColor.toString(), strokeWidth, size);
+    }
+
+    // Convert from a DTO to a Relation
+    public static Relation fromDTO(RelationDTO dto) {
+        Relation relation = new Relation(dto.getPosX(), dto.getPosY(), dto.getPoints());
+        relation.setTextNode(dto.getText());
+        relation.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
+        relation.setStrokeWidth(dto.getStrokeWidth());
+        relation.setSize(dto.getSize());
+        return relation;
+    }
+
+    // DTO class for Relation
+    public static class RelationDTO {
         private double posX;
         private double posY;
-        private boolean isSelected = false;
+        private double[] points;
+        private String text;
+        private String strokeColor;
+        private double strokeWidth;
+        private double size;
 
-        public Relation(double... points) {
-            super(points);
-            setFill(Color.WHITE);
-            setStroke(Color.BLACK);
-            setSelected(true); // Assuming you want to initially select the relation
+        public RelationDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("points") double[] points, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth, @JsonProperty("size") double size) {
+            this.posX = posX;
+            this.posY = posY;
+            this.points = points;
+            this.text = text;
+            this.strokeColor = strokeColor;
+            this.strokeWidth = strokeWidth;
+            this.size = size;
         }
 
         public double getPosX() {
             return posX;
         }
 
-        public void setPosX(double posX) {
-            this.posX = posX;
-        }
-
         public double getPosY() {
             return posY;
         }
 
-        public void setPosY(double posY) {
-            this.posY = posY;
+        public double[] getPoints() {
+            return points;
         }
 
-        @Override
-        public boolean isSelected() {
-            return isSelected;
+        public String getText() {
+            return text;
         }
 
-        @Override
-        public void setSelected(boolean selected) {
-            isSelected = selected;
-            if (selected) {
-                setStroke(Color.RED);
-            } else {
-                setStroke(Color.BLACK);
-            }
+        public String getStrokeColor() {
+            return strokeColor;
         }
 
-        @Override
-        public void drag(double deltaX, double deltaY) {
-            Double[] points = getPoints().toArray(new Double[0]);
-            for (int i = 0; i < points.length; i += 2) {
-                points[i] += deltaX;
-                points[i + 1] += deltaY;
-            }
-            getPoints().setAll(points);
+        public double getStrokeWidth() {
+            return strokeWidth;
         }
 
+        public double getSize() {
+            return size;
+        }
     }
+}

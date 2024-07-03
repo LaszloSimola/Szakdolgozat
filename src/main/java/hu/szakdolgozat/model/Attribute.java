@@ -1,5 +1,7 @@
 package hu.szakdolgozat.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.layout.StackPane;
@@ -9,10 +11,13 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 
-public class Attribute extends StackPane implements Selectable, Draggable {
+import java.io.Serializable;
+
+public class Attribute extends StackPane implements Serializable, Selectable, Draggable {
     private double posX;
     private double posY;
     private Color strokeColor = Color.BLACK;
+    private double strokeWidth = 1.0;
     boolean isSelected = false;
     private Ellipse ellipse;
     private Text textNode;
@@ -39,25 +44,27 @@ public class Attribute extends StackPane implements Selectable, Draggable {
     }
 
     public Attribute(double posX, double posY) {
-        this(posX, posY, 30, 50); // Default values for height and width
+        this(posX, posY, 30, 50);
     }
 
-    public Attribute(double posX, double posY, double height, double width) {
+    public Attribute(@JsonProperty("x") double posX, @JsonProperty("y") double posY, @JsonProperty("height") double height, @JsonProperty("width") double width) {
+        this.posX = posX;
+        this.posY = posY;
 
-        ellipse = new Ellipse(posX,posY, width / 2, height / 2);
-
+        ellipse = new Ellipse(width / 2, height / 2);
         ellipse.setFill(Color.WHITE);
         ellipse.setStroke(strokeColor);
+        ellipse.setStrokeWidth(strokeWidth);
 
         getChildren().add(ellipse);
         setTextNode("Attribute");
 
-        setAlignment(ellipse, Pos.CENTER); // Center the ellipse within the StackPane
+        setAlignment(Pos.CENTER);
         setLayoutX(posX);
         setLayoutY(posY);
 
-        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
-        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(Pos.CENTER));
+        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(Pos.CENTER));
     }
 
     public double getPosX() {
@@ -87,6 +94,15 @@ public class Attribute extends StackPane implements Selectable, Draggable {
         ellipse.setStroke(strokeColor);
     }
 
+    public double getStrokeWidth() {
+        return strokeWidth;
+    }
+
+    public void setStrokeWidth(double strokeWidth) {
+        this.strokeWidth = strokeWidth;
+        ellipse.setStrokeWidth(strokeWidth);
+    }
+
     @Override
     public void drag(double deltaX, double deltaY) {
         setPosX(getPosX() + deltaX);
@@ -112,8 +128,71 @@ public class Attribute extends StackPane implements Selectable, Draggable {
 
     @Override
     public boolean contains(double x, double y) {
-        double localX = x - getLayoutX();
-        double localY = y - getLayoutY();
+        double localX = x - (getLayoutX() + getWidth() / 2);
+        double localY = y - (getLayoutY() + getHeight() / 2);
         return ellipse.contains(localX, localY);
+    }
+
+    // Convert to a DTO for serialization
+    public AttributeDTO toDTO() {
+        return new AttributeDTO(posX, posY, ellipse.getRadiusX() * 2, ellipse.getRadiusY() * 2, textNode.getText(), strokeColor.toString(), strokeWidth);
+    }
+
+    // Convert from a DTO to an Attribute
+    public static Attribute fromDTO(AttributeDTO dto) {
+        Attribute attribute = new Attribute(dto.getPosX(), dto.getPosY(), dto.getHeight(), dto.getWidth());
+        attribute.setTextNode(dto.getText());
+        attribute.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
+        attribute.setStrokeWidth(dto.getStrokeWidth());
+        return attribute;
+    }
+
+    // DTO class for Attribute
+    public static class AttributeDTO {
+        private double posX;
+        private double posY;
+        private double width;
+        private double height;
+        private String text;
+        private String strokeColor;
+        private double strokeWidth;
+
+        public AttributeDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth) {
+            this.posX = posX;
+            this.posY = posY;
+            this.width = width;
+            this.height = height;
+            this.text = text;
+            this.strokeColor = strokeColor;
+            this.strokeWidth = strokeWidth;
+        }
+
+        public double getPosX() {
+            return posX;
+        }
+
+        public double getPosY() {
+            return posY;
+        }
+
+        public double getWidth() {
+            return width;
+        }
+
+        public double getHeight() {
+            return height;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getStrokeColor() {
+            return strokeColor;
+        }
+
+        public double getStrokeWidth() {
+            return strokeWidth;
+        }
     }
 }
