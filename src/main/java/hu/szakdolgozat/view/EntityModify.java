@@ -4,7 +4,10 @@ import hu.szakdolgozat.model.Entity;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -39,6 +42,7 @@ public class EntityModify extends Stage {
 
         Text gyengeEgyedText = new Text("Gyenge egyed:");
         CheckBox gyengeEgyedCheckbox = new CheckBox();
+        gyengeEgyedCheckbox.setSelected(entity.isWeakEntity());
 
         root.addColumn(0, label, szelesseg, magassag, szinText, vastagsag, gyengeEgyedText);
         root.addColumn(1, labelTextfield, szelessegSpinner, magassagSpinner, colorPicker, vastagsagspinner, gyengeEgyedCheckbox);
@@ -48,16 +52,21 @@ public class EntityModify extends Stage {
 
         root.addRow(6, okBtn, megseBtn);
 
+        // Listener to toggle the double outline effect
+        gyengeEgyedCheckbox.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+            entity.setWeakEntity(isNowSelected); // Toggle the outer rectangle visibility
+        });
+
         megseBtn.setOnAction(e -> {
             close();
         });
 
         okBtn.setOnAction(e -> {
             entity.setTextNode(labelTextfield.getText());
-            entity.getRectangle().setWidth(szelessegSpinner.getValue());
-            entity.getRectangle().setHeight(magassagSpinner.getValue());
+            entity.updateSize(szelessegSpinner.getValue(), magassagSpinner.getValue());
             entity.setStrokeColor(colorPicker.getValue());
             entity.setStrokeWidth(vastagsagspinner.getValue()); // Updated to use setter method
+            entity.setWeakEntity(gyengeEgyedCheckbox.isSelected());
             close();
         });
 

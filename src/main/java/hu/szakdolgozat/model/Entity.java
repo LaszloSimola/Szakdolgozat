@@ -1,6 +1,5 @@
 package hu.szakdolgozat.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
@@ -20,11 +19,13 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
     private double strokeWidth = 1.0;
     boolean isSelected = false;
     private Rectangle rectangle;
+    private Rectangle outerRectangle;
     private Text textNode;
-
+    private boolean isWeakEntity = false;
     public Text getTextNode() {
         return textNode;
     }
+
 
     public void setTextNode(String textContent) {
         if (textNode == null) {
@@ -56,7 +57,15 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         rectangle.setStroke(strokeColor);
         rectangle.setStrokeWidth(strokeWidth);
 
-        getChildren().add(rectangle); // Add the rectangle first
+        // Outer rectangle, initially hidden
+        outerRectangle = new Rectangle(width + 10, height + 10); // Slightly larger
+        outerRectangle.setFill(Color.TRANSPARENT);
+        outerRectangle.setStroke(Color.BLACK);
+        outerRectangle.setStrokeWidth(2);
+        outerRectangle.setVisible(false); // Initially hidden
+
+        // Add both rectangles to the StackPane, outer first so it is behind
+        getChildren().addAll(outerRectangle, rectangle);
         setTextNode("Entity"); // Add the text node and set its initial text
 
         setAlignment(rectangle, Pos.CENTER); // Center the rectangle within the StackPane
@@ -102,6 +111,7 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
     public void setStrokeWidth(double strokeWidth) {
         this.strokeWidth = strokeWidth;
         rectangle.setStrokeWidth(strokeWidth);
+        outerRectangle.setStrokeWidth(strokeWidth);
     }
 
     @Override
@@ -116,8 +126,10 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
 
     public void setSelected(boolean selected) {
         if (selected) {
+            outerRectangle.setStroke(Color.RED);
             rectangle.setStroke(Color.RED);
         } else {
+            outerRectangle.setStroke(strokeColor);
             rectangle.setStroke(strokeColor);
         }
         isSelected = selected;
@@ -127,6 +139,24 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         return rectangle;
     }
 
+    // Getter for isWeakEntity
+    public boolean isWeakEntity() {
+        return isWeakEntity;
+    }
+
+    // Setter for isWeakEntity
+    public void setWeakEntity(boolean isWeakEntity) {
+        this.isWeakEntity = isWeakEntity;
+        outerRectangle.setVisible(isWeakEntity);
+    }
+
+    public void updateSize(double width, double height) {
+        rectangle.setWidth(width);
+        rectangle.setHeight(height);
+        outerRectangle.setWidth(width + 10);
+        outerRectangle.setHeight(height + 10);
+    }
+
     @Override
     public boolean contains(double x, double y) {
         return rectangle.contains(x - getLayoutX(), y - getLayoutY());
@@ -134,7 +164,7 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
 
     // Convert to a DTO for serialization
     public EntityDTO toDTO() {
-        return new EntityDTO(posX, posY, rectangle.getWidth(), rectangle.getHeight(), textNode.getText(), strokeColor.toString(), strokeWidth);
+        return new EntityDTO(posX, posY, rectangle.getWidth(), rectangle.getHeight(), textNode.getText(), strokeColor.toString(), strokeWidth,isWeakEntity);
     }
 
     // Convert from a DTO to an Entity
@@ -143,6 +173,7 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         entity.setTextNode(dto.getText());
         entity.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
         entity.setStrokeWidth(dto.getStrokeWidth());
+        entity.setWeakEntity(dto.isWeakEntity());
         return entity;
     }
 
@@ -155,8 +186,9 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         private String text;
         private String strokeColor;
         private double strokeWidth;
+        private boolean isWeakEntity;
 
-        public EntityDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth) {
+        public EntityDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth, @JsonProperty("isWeakEntity") boolean isWeakEntity) {
             this.posX = posX;
             this.posY = posY;
             this.width = width;
@@ -164,6 +196,16 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
             this.text = text;
             this.strokeColor = strokeColor;
             this.strokeWidth = strokeWidth;
+            this.isWeakEntity = isWeakEntity;
+        }
+
+        // Getters and setters for the new field
+        public boolean isWeakEntity() {
+            return isWeakEntity;
+        }
+
+        public void setWeakEntity(boolean weakEntity) {
+            isWeakEntity = weakEntity;
         }
 
         public double getPosX() {
