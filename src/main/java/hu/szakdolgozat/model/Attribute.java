@@ -20,7 +20,9 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
     private double strokeWidth = 1.0;
     boolean isSelected = false;
     private Ellipse ellipse;
+    private Ellipse outerEllipse;
     private Text textNode;
+    private boolean isMultiValue = false;
 
     public Text getTextNode() {
         return textNode;
@@ -51,12 +53,20 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
         this.posX = posX;
         this.posY = posY;
 
+
         ellipse = new Ellipse(width / 2, height / 2);
         ellipse.setFill(Color.WHITE);
         ellipse.setStroke(strokeColor);
         ellipse.setStrokeWidth(strokeWidth);
 
-        getChildren().add(ellipse);
+
+        outerEllipse = new Ellipse(width / 2 + 7, height / 2 + 7);
+        outerEllipse.setFill(Color.TRANSPARENT);
+        outerEllipse.setStroke(Color.BLACK);
+        outerEllipse.setStrokeWidth(2);
+        outerEllipse.setVisible(false);
+
+        getChildren().addAll(outerEllipse,ellipse);
         setTextNode("Attribute");
 
         setAlignment(Pos.CENTER);
@@ -66,6 +76,8 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
         widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(Pos.CENTER));
         heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(Pos.CENTER));
     }
+
+    // Getters, Setters
 
     public double getPosX() {
         return posX;
@@ -101,6 +113,7 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
     public void setStrokeWidth(double strokeWidth) {
         this.strokeWidth = strokeWidth;
         ellipse.setStrokeWidth(strokeWidth);
+        outerEllipse.setStrokeWidth(strokeWidth);
     }
 
     @Override
@@ -116,8 +129,10 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
     public void setSelected(boolean selected) {
         if (selected) {
             ellipse.setStroke(Color.RED);
+            outerEllipse.setStroke(Color.RED);
         } else {
             ellipse.setStroke(strokeColor);
+            outerEllipse.setStroke(strokeColor);
         }
         isSelected = selected;
     }
@@ -125,6 +140,24 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
     public Ellipse getEllipse() {
         return ellipse;
     }
+
+    public boolean isMultiValue() {
+        return isMultiValue;
+    }
+
+    public void setMultiValue(boolean multiValue) {
+        this.isMultiValue = multiValue;
+        outerEllipse.setVisible(multiValue);
+    }
+
+    public void updateSize(double width, double height) {
+        ellipse.setRadiusX(width / 2);  // Update width (RadiusX is half of the width)
+        ellipse.setRadiusY(height / 2);  // Update height (RadiusY is half of the height)
+        outerEllipse.setRadiusX((width / 2) + 7);  // Adjust for the outer ellipse
+        outerEllipse.setRadiusY((height / 2) + 7); // Adjust for the outer ellipse
+    }
+
+
 
     @Override
     public boolean contains(double x, double y) {
@@ -135,7 +168,7 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
 
     // Convert to a DTO for serialization
     public AttributeDTO toDTO() {
-        return new AttributeDTO(posX, posY, ellipse.getRadiusX() * 2, ellipse.getRadiusY() * 2, textNode.getText(), strokeColor.toString(), strokeWidth);
+        return new AttributeDTO(posX, posY, ellipse.getRadiusX() * 2, ellipse.getRadiusY() * 2, textNode.getText(), strokeColor.toString(), strokeWidth,isMultiValue);
     }
 
     // Convert from a DTO to an Attribute
@@ -144,6 +177,7 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
         attribute.setTextNode(dto.getText());
         attribute.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
         attribute.setStrokeWidth(dto.getStrokeWidth());
+        attribute.setMultiValue(dto.isMultiValue());
         return attribute;
     }
 
@@ -156,8 +190,9 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
         private String text;
         private String strokeColor;
         private double strokeWidth;
+        private boolean isMultiValue;
 
-        public AttributeDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth) {
+        public AttributeDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth, @JsonProperty("isMultiValue") boolean isMultiValue) {
             this.posX = posX;
             this.posY = posY;
             this.width = width;
@@ -165,6 +200,7 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
             this.text = text;
             this.strokeColor = strokeColor;
             this.strokeWidth = strokeWidth;
+            this.isMultiValue = isMultiValue;
         }
 
         public double getPosX() {
@@ -194,5 +230,12 @@ public class Attribute extends StackPane implements Serializable, Selectable, Dr
         public double getStrokeWidth() {
             return strokeWidth;
         }
+
+        public boolean isMultiValue() {return isMultiValue;}
+
+        public void setMultiValue(boolean multiValue) {
+            this.isMultiValue = multiValue;
+        }
+
     }
 }

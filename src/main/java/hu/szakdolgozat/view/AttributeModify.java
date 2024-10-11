@@ -38,22 +38,32 @@ public class AttributeModify extends Stage {
         Spinner<Integer> strokeWidthSpinner = new Spinner<>(1, 10, (int) attribute.getEllipse().getStrokeWidth());
         strokeWidthSpinner.setEditable(true);
 
-        root.addColumn(0, label, widthText, heightText, colorText, strokeWidthText);
-        root.addColumn(1, labelTextField, widthSpinner, heightSpinner, colorPicker, strokeWidthSpinner);
+        Text isMultivalued = new Text("Multivalued:");
+        CheckBox multiValuedCheckbox = new CheckBox();
+        multiValuedCheckbox.setSelected(attribute.isMultiValue());
+
+        root.addColumn(0, label, widthText, heightText, colorText, strokeWidthText, isMultivalued);
+        root.addColumn(1, labelTextField, widthSpinner, heightSpinner, colorPicker, strokeWidthSpinner,multiValuedCheckbox);
 
         Button okBtn = new Button("ok");
         Button cancelBtn = new Button("megse");
 
-        root.addRow(5, okBtn, cancelBtn);
+        root.addRow(6, okBtn, cancelBtn);
 
         cancelBtn.setOnAction(e -> close());
 
+        multiValuedCheckbox.selectedProperty().addListener((observable, wasSelected, isNowSelected) -> {
+            attribute.setMultiValue(isNowSelected);
+        });
+
         okBtn.setOnAction(e -> {
             attribute.setTextNode(labelTextField.getText());
-            attribute.getEllipse().setRadiusX(widthSpinner.getValue() / 2.0);
-            attribute.getEllipse().setRadiusY(heightSpinner.getValue() / 2.0);
+            double newWidth = widthSpinner.getValue();
+            double newHeight = heightSpinner.getValue();
+            attribute.updateSize(newWidth, newHeight);  // Update both width and height
             attribute.setStrokeColor(colorPicker.getValue());
             attribute.setStrokeWidth(strokeWidthSpinner.getValue());
+            attribute.setSelected(multiValuedCheckbox.isSelected());
             close();
         });
 
