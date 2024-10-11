@@ -77,6 +77,8 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
     }
 
+    // Getters, Setters
+
     public double getPosX() {
         return posX;
     }

@@ -154,6 +154,7 @@ public class AppView extends Application {
         Button attributumButton = new Button("Attributum");
         Button deleteButton = new Button("Delete");
         Button connectButton = new Button("Connect");
+        Button specializerButton = new Button("Specializer");
         //Button checkbutton = new Button("Check the lines");
 
         //style for the buttons
@@ -162,12 +163,15 @@ public class AppView extends Application {
         attributumButton.getStyleClass().add("action-button");
         connectButton.getStyleClass().add("connect-button");
         deleteButton.getStyleClass().add("delete-button");
+        specializerButton.getStyleClass().add("action-button");
+
         //checkbutton.getStyleClass().add("action-button");
 
         // Event handlers for buttons
         egyedButton.setOnAction(e -> controller.handleEntityButtonClick());
         kapcsolatButton.setOnAction(e -> controller.handleRelationButtonClick());
         attributumButton.setOnAction(e -> controller.handleAttributeButtonClick());
+        specializerButton.setOnAction(e -> controller.handleSpecializeButtonClick());
         connectButton.setOnAction(e -> {
             controller.handleConnectButton();
             if (controller.isConnectClicked()) {
@@ -180,7 +184,7 @@ public class AppView extends Application {
 
         // Vbox for the buttons
         VBox buttonPanel = new VBox(10);
-        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton, deleteButton, connectButton);
+        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton,specializerButton, deleteButton, connectButton);
         buttonPanel.setPadding(new Insets(7));
 
         //style for the buttonpanel
@@ -346,6 +350,17 @@ public class AppView extends Application {
                         }
                     }
                 }
+            } else if (controller.isSpecializeClicked()) {
+                SpecializerRelation specializerRelation = new SpecializerRelation(clickX / 2 + 20 ,clickY / 2 + 20);
+                root.getChildren().add(specializerRelation);
+                selectedNode = specializerRelation;
+                // Deselect all other nodes
+                for (Node node : root.getChildren()) {
+                    if (node instanceof Selectable && node != specializerRelation) {
+                        ((Selectable) node).setSelected(false);
+                    }
+                }
+                controller.setSpecializeClicked(false);
             } else {
                 // selector for nodes (start from the last node and end at the first)
                 for (int i = root.getChildren().size() - 1; i >= 0; i--) {

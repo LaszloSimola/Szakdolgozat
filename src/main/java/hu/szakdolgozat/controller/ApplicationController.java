@@ -1,18 +1,11 @@
 package hu.szakdolgozat.controller;
 
 import hu.szakdolgozat.model.*;
-import hu.szakdolgozat.view.AppView;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Rectangle;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ApplicationController {
@@ -21,11 +14,13 @@ public class ApplicationController {
     private boolean relationshipClicked = false;
     private boolean attributeClicked = false;
     private boolean connectClicked = false;
+    private boolean specializeClicked = false;
 
     public void handleConnectButton(){
         relationshipClicked = false;
         attributeClicked = false;
         entityClicked = false;
+        specializeClicked = false;
         if (connectClicked){
             connectClicked = false;
         }else{
@@ -37,6 +32,7 @@ public class ApplicationController {
     public void handleEntityButtonClick() {
         relationshipClicked = false;
         attributeClicked = false;
+        specializeClicked = false;
         if (!entityClicked) {
             entityClicked = true;
         } else {
@@ -46,6 +42,7 @@ public class ApplicationController {
     public void handleRelationButtonClick() {
         entityClicked = false;
         attributeClicked = false;
+        specializeClicked = false;
         if (!relationshipClicked) {
             relationshipClicked = true;
         } else {
@@ -55,10 +52,22 @@ public class ApplicationController {
     public void handleAttributeButtonClick() {
         entityClicked = false;
         relationshipClicked = false;
+        specializeClicked = false;
         if (!attributeClicked) {
             attributeClicked = true;
         } else {
             attributeClicked = false;
+        }
+    }
+    public void handleSpecializeButtonClick() {
+        entityClicked = false;
+        relationshipClicked = false;
+        attributeClicked = false;
+        if (!specializeClicked) {
+            specializeClicked = true;
+            System.out.println("clicked");
+        } else {
+            specializeClicked = false;
         }
     }
 
@@ -93,7 +102,15 @@ public class ApplicationController {
         this.connectClicked = connectClicked;
     }
 
-    public void connectNodes(Node startNode, Node endNode, Pane root,List<OwnLine> lines) {
+    public boolean isSpecializeClicked() {
+        return specializeClicked;
+    }
+
+    public void setSpecializeClicked(boolean specializeClicked) {
+        this.specializeClicked = specializeClicked;
+    }
+
+    public void connectNodes(Node startNode, Node endNode, Pane root, List<OwnLine> lines) {
         // Draw a line between startNode and endNode
         OwnLine line = new OwnLine();
         line.startXProperty().bind(Bindings.createDoubleBinding(() -> {
@@ -121,5 +138,6 @@ public class ApplicationController {
         line.toBack();
 
     }
+
 
 }
