@@ -1,7 +1,10 @@
 package hu.szakdolgozat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import javafx.scene.Node;
+
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AppState {
@@ -49,17 +52,20 @@ public class AppState {
         return relations.stream().map(Relation::fromDTO).collect(Collectors.toList());
     }
 
-   public List<OwnLine.OwnLineDTO> getConnections() {
-       return connections;
-   }
+    public List<OwnLine.OwnLineDTO> getConnections() {
+        return connections;
+    }
 
 
-   public void setConnections(List<OwnLine> connections) {
-       this.connections = connections.stream().map(OwnLine::toDTO).collect(Collectors.toList());
-   }
+    public void setConnections(List<OwnLine> connections) {
+        this.connections = connections.stream().map(OwnLine::toDTO).collect(Collectors.toList());
+    }
 
-   @JsonIgnore
-   public List<OwnLine> getConnectionObjects() {
-       return connections.stream().map(OwnLine::fromDTO).collect(Collectors.toList());
-   }
+    @JsonIgnore
+    public List<OwnLine> getConnectionObjects() {
+        // Use a lambda expression instead of method reference to pass nodeMap to fromDTO()
+        return connections.stream()
+                .map(OwnLine::fromDTO) // Pass nodeMap to fromDTO
+                .collect(Collectors.toList());
+    }
 }

@@ -1,16 +1,15 @@
 package hu.szakdolgozat.model;
 
-import javafx.beans.property.DoubleProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class OwnLine extends Line implements Selectable, Serializable {
-    private Node startNode;
-    private Node endNode;
+    private String startNodeId;
+    private String endNodeId;
 
     public OwnLine() {
         this.setStrokeWidth(1.5);
@@ -34,22 +33,22 @@ public class OwnLine extends Line implements Selectable, Serializable {
         }
         isSelected = selected;
     }
-
-    public Node getStartNode() {
-        return startNode;
+    public void setStartNodeId(String startNodeId) {
+        this.startNodeId = startNodeId;
     }
 
-    public void setStartNode(Node startNode) {
-        this.startNode = startNode;
+    public void setEndNodeId(String endNodeId) {
+        this.endNodeId = endNodeId;
     }
 
-    public Node getEndNode() {
-        return endNode;
+    public String getStartNodeId() {
+        return this.startNodeId;
     }
 
-    public void setEndNode(Node endNode) {
-        this.endNode = endNode;
+    public String getEndNodeId() {
+        return endNodeId;
     }
+
 
     // DTO class for OwnLine
     public static class OwnLineDTO {
@@ -57,19 +56,19 @@ public class OwnLine extends Line implements Selectable, Serializable {
         private double startY;
         private double endX;
         private double endY;
-
-        private Node startNode;
-        private Node endNode;
+        private String startNodeId;
+        private String endNodeId;
 
         public OwnLineDTO(@JsonProperty("startX") double startX, @JsonProperty("startY") double startY,
                           @JsonProperty("endX") double endX, @JsonProperty("endY") double endY,
-                          @JsonProperty("startNode") Node startNode,@JsonProperty("endNode") Node endNode) {
+                          @JsonProperty("startNodeId") String startNodeId, @JsonProperty("endNodeId") String endNodeId) {
             this.startX = startX;
             this.startY = startY;
             this.endX = endX;
             this.endY = endY;
-            this.startNode = startNode;
-            this.endNode = endNode;
+            this.startNodeId = startNodeId;
+            this.endNodeId = endNodeId;
+
         }
 
         public double getStartX() {
@@ -88,19 +87,17 @@ public class OwnLine extends Line implements Selectable, Serializable {
             return endY;
         }
 
-
-        public Node getStartNode() {
-            return startNode;
+        public String getStartNodeId() {
+            return startNodeId;
         }
 
-
-        public Node getEndNode() {
-            return endNode;
+        public String getEndNodeId() {
+            return endNodeId;
         }
     }
 
     public OwnLineDTO toDTO() {
-        return new OwnLineDTO(getStartX(), getStartY(), getEndX(), getEndY(),getStartNode(),getEndNode());
+        return new OwnLineDTO(getStartX(), getStartY(), getEndX(), getEndY(), getStartNodeId(), getEndNodeId());
     }
 
     public static OwnLine fromDTO(OwnLineDTO dto) {
@@ -109,8 +106,8 @@ public class OwnLine extends Line implements Selectable, Serializable {
         line.setStartY(dto.getStartY());
         line.setEndX(dto.getEndX());
         line.setEndY(dto.getEndY());
-        line.setStartNode(dto.getStartNode());
-        line.setEndNode(dto.getEndNode());
+        line.setStartNodeId(dto.getStartNodeId());
+        line.setEndNodeId(dto.getEndNodeId());
         return line;
     }
 }
