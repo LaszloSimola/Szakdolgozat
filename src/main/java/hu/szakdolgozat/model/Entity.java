@@ -103,6 +103,7 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
 
     public void setStrokeColor(Color strokeColor) {
         this.strokeColor = strokeColor;
+        outerRectangle.setStroke(strokeColor);
         rectangle.setStroke(strokeColor);
     }
 

@@ -52,11 +52,6 @@ public class EntityModify extends Stage {
 
         root.addRow(6, okBtn, megseBtn);
 
-        // Listener to toggle the double outline effect
-        gyengeEgyedCheckbox.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
-            entity.setWeakEntity(isNowSelected); // Toggle the outer rectangle visibility
-        });
-
         megseBtn.setOnAction(e -> {
             close();
         });
