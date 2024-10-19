@@ -2,14 +2,9 @@ package hu.szakdolgozat.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
-
 import java.io.Serializable;
 
 public class SpecializerRelation extends StackPane implements Serializable, Selectable, Draggable {
@@ -19,14 +14,14 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
     private double strokeWidth = 1.0;
     boolean isSelected = false;
     private Polygon triangle;
-    private Text textNode;
+
 
     public SpecializerRelation() {
-        this(0, 0, 100, 100); // Default values for position, width, and height
+        this(0, 0, 65, 65); // Default values for position, width, and height
     }
 
     public SpecializerRelation(double posX, double posY) {
-        this(posX, posY, 100, 100); // Default values for width and height
+        this(posX, posY, 65, 65); // Default values for width and height
     }
 
     public SpecializerRelation(@JsonProperty("x") double posX, @JsonProperty("y") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height) {
@@ -40,15 +35,12 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
 
         // Add the triangle to the StackPane
         getChildren().add(triangle);
-        setTextNode("Specializer"); // Add the text node and set its initial text
+
 
         setAlignment(triangle, Pos.CENTER); // Center the triangle within the StackPane
         setLayoutX(posX);
         setLayoutY(posY);
 
-        // Ensure that text is always centered
-        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
-        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
     }
 
     private Polygon createTriangle(double width, double height) {
@@ -59,25 +51,6 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
                 0.0, height            // Bottom left vertex (previously top left)
         );
         return polygon;
-    }
-
-    public void setTextNode(String textContent) {
-        if (textNode == null) {
-            textNode = new Text();
-            textNode.setFont(Font.font(12));
-            textNode.setFill(Color.BLACK);
-            textNode.setTextOrigin(VPos.CENTER);
-            textNode.setTextAlignment(TextAlignment.CENTER);
-            getChildren().add(textNode);
-        }
-        textNode.setText(textContent);
-
-        // Set alignment to center, but move text down inside the triangle
-        setAlignment(textNode, Pos.CENTER);
-
-        // Lower the text by translating it downwards (adjust value as needed)
-        double verticalOffset = 10;  // Adjust this value to fine-tune the position
-        textNode.setTranslateY(verticalOffset);
     }
 
 
@@ -156,13 +129,12 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
 
     // Convert to a DTO for serialization
     public SpecializerDTO toDTO() {
-        return new SpecializerDTO(posX, posY, triangle.getPoints().get(2), triangle.getPoints().get(4), textNode.getText(), strokeColor.toString(), strokeWidth);
+        return new SpecializerDTO(posX, posY, triangle.getPoints().get(2), triangle.getPoints().get(4), strokeColor.toString(), strokeWidth);
     }
 
     // Convert from a DTO to a Specializer
     public static SpecializerRelation fromDTO(SpecializerDTO dto) {
         SpecializerRelation specializer = new SpecializerRelation(dto.getPosX(), dto.getPosY(), dto.getWidth(), dto.getHeight());
-        specializer.setTextNode(dto.getText());
         specializer.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
         specializer.setStrokeWidth(dto.getStrokeWidth());
         return specializer;
@@ -174,16 +146,14 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
         private double posY;
         private double width;
         private double height;
-        private String text;
         private String strokeColor;
         private double strokeWidth;
 
-        public SpecializerDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth) {
+        public SpecializerDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth) {
             this.posX = posX;
             this.posY = posY;
             this.width = width;
             this.height = height;
-            this.text = text;
             this.strokeColor = strokeColor;
             this.strokeWidth = strokeWidth;
         }
@@ -205,9 +175,7 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
             return height;
         }
 
-        public String getText() {
-            return text;
-        }
+
 
         public String getStrokeColor() {
             return strokeColor;
