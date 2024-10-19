@@ -42,13 +42,17 @@ public class RelationModify extends Stage {
         Spinner<Double> thicknessSpinner = new Spinner<>(1.0, 10.0, relation.getStrokeWidth());
         thicknessSpinner.setEditable(true);
 
-        root.addColumn(0, labelText, colorText, posXText, posYText, sizeText, thicknessText);
-        root.addColumn(1, labelTextfield, colorPicker, posXSpinner, posYSpinner, sizeSpinner, thicknessSpinner);
+        Text identifyingText = new Text("Identifying:");
+        CheckBox identifyingCheckbox = new CheckBox();
+        identifyingCheckbox.setSelected(relation.isISIdentify());
+
+        root.addColumn(0, labelText, colorText, posXText, posYText, sizeText, thicknessText,identifyingText);
+        root.addColumn(1, labelTextfield, colorPicker, posXSpinner, posYSpinner, sizeSpinner, thicknessSpinner,identifyingCheckbox);
 
         Button okBtn = new Button("OK");
         Button cancelBtn = new Button("Cancel");
 
-        root.addRow(6, okBtn, cancelBtn);
+        root.addRow(7, okBtn, cancelBtn);
 
         cancelBtn.setOnAction(e -> {
             close();
@@ -61,6 +65,7 @@ public class RelationModify extends Stage {
             relation.setPosY(posYSpinner.getValue());
             relation.setSize(sizeSpinner.getValue());
             relation.setStrokeWidth(thicknessSpinner.getValue());
+            relation.setIsIdentify(identifyingCheckbox.isSelected());
             close();
         });
 

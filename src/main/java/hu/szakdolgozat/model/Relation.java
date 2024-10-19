@@ -12,7 +12,6 @@ import javafx.scene.text.TextAlignment;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
-
 public class Relation extends StackPane implements Serializable, Selectable, Draggable {
     private double posX;
     private double posY;
@@ -22,7 +21,48 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
 
     boolean isSelected = false;
     private Polygon polygon;
+    private Polygon outerPolygon; // Outer polygon for the second outline
     private Text textNode;
+    private boolean IsIdentify = false;
+
+    public Relation(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("points") double... points) {
+        this.posX = posX;
+        this.posY = posY;
+
+        polygon = new Polygon(points);
+        polygon.setFill(Color.WHITE);
+        polygon.setStroke(strokeColor);
+        polygon.setStrokeWidth(strokeWidth);
+
+        // Create the outer polygon slightly larger
+        outerPolygon = new Polygon(scalePoints(points, 15)); // Add 10 units to create a larger outline
+        outerPolygon.setFill(Color.TRANSPARENT);
+        outerPolygon.setStroke(strokeColor);
+        outerPolygon.setStrokeWidth(2);
+        outerPolygon.setVisible(IsIdentify); // Initially hidden
+
+        // Add both polygons to the StackPane, outer first so it is behind
+        getChildren().addAll(outerPolygon, polygon);
+        setTextNode("Relation");
+
+        setAlignment(polygon, Pos.CENTER);
+        setLayoutX(posX);
+        setLayoutY(posY);
+
+        // Ensure that text is always centered
+        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
+    }
+
+    public boolean isISIdentify() {
+        return IsIdentify;
+    }
+
+    public void setIsIdentify(boolean IsIdentify) {
+        this.IsIdentify = IsIdentify;
+        outerPolygon.setVisible(IsIdentify);
+
+    }
 
     public Text getTextNode() {
         return textNode;
@@ -43,27 +83,6 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
 
     public Relation(double... points) {
         this(0, 0, points);
-    }
-
-    public Relation(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("points") double... points) {
-        this.posX = posX;
-        this.posY = posY;
-
-        polygon = new Polygon(points);
-        polygon.setFill(Color.WHITE);
-        polygon.setStroke(strokeColor);
-        polygon.setStrokeWidth(strokeWidth);
-
-        getChildren().add(polygon);
-        setTextNode("Relation");
-
-        setAlignment(polygon, Pos.CENTER);
-        setLayoutX(posX);
-        setLayoutY(posY);
-
-        // Ensure that text is always centered
-        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
-        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
     }
 
     public double getPosX() {
@@ -91,6 +110,7 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
     public void setStrokeColor(Color strokeColor) {
         this.strokeColor = strokeColor;
         polygon.setStroke(strokeColor);
+        outerPolygon.setStroke(strokeColor); // Update the outer polygon stroke
     }
 
     public double getStrokeWidth() {
@@ -100,6 +120,7 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
     public void setStrokeWidth(double strokeWidth) {
         this.strokeWidth = strokeWidth;
         polygon.setStrokeWidth(strokeWidth);
+        outerPolygon.setStrokeWidth(strokeWidth);
     }
 
     public double getSize() {
@@ -110,6 +131,8 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
         this.size = size;
         polygon.setScaleX(size); // Adjust scaleX
         polygon.setScaleY(size); // Adjust scaleY
+        outerPolygon.setScaleX(size); // Scale outer polygon
+        outerPolygon.setScaleY(size); // Scale outer polygon
     }
 
     @Override
@@ -128,18 +151,49 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
     public void setSelected(boolean selected) {
         if (selected) {
             polygon.setStroke(Color.RED);
+            outerPolygon.setStroke(Color.RED);
+
         } else {
             polygon.setStroke(strokeColor);
+            outerPolygon.setStroke(strokeColor);
+
         }
         isSelected = selected;
     }
+
+    // Scale points for the outer polygon, relative to the center of the polygon
+    private double[] scalePoints(double[] points, double scaleOffset) {
+        double[] scaledPoints = new double[points.length];
+
+        // Calculate the centroid (center) of the polygon
+        double centerX = 0;
+        double centerY = 0;
+        for (int i = 0; i < points.length; i += 2) {
+            centerX += points[i];
+            centerY += points[i + 1];
+        }
+        centerX /= ((double) points.length / 2);
+        centerY /= ((double) points.length / 2);
+
+        // Scale each point relative to the centroid
+        for (int i = 0; i < points.length; i += 2) {
+            double deltaX = points[i] - centerX;
+            double deltaY = points[i + 1] - centerY;
+
+            // Apply scaling
+            scaledPoints[i] = centerX + deltaX * (1 + scaleOffset / 100); // Scale X
+            scaledPoints[i + 1] = centerY + deltaY * (1 + scaleOffset / 100); // Scale Y
+        }
+
+        return scaledPoints;
+    }
+
 
     @Override
     public boolean contains(double x, double y) {
         System.out.println(polygon.contains(x,y));
         return getBoundsInParent().contains(x,y);
     }
-
     // Convert to a DTO for serialization
     public RelationDTO toDTO() {
         return new RelationDTO(posX, posY, polygon.getPoints().stream().mapToDouble(Double::doubleValue).toArray(), textNode.getText(), strokeColor.toString(), strokeWidth, size);
