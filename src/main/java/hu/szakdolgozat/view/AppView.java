@@ -1,10 +1,14 @@
 package hu.szakdolgozat.view;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import hu.szakdolgozat.controller.ApplicationController;
 import hu.szakdolgozat.model.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -13,12 +17,17 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.prefs.Preferences;
 
-
+/*
+* meghatározo kapcsolat duplavonalas rombusz
+* kisebb es normalisan mukdodo speializalo kapcsolat
+* automazicio erteistes a usernek
+* visszatoltes
+* nyil megvalositasa az entitas fele
+* kulcsjeloles
+* */
 
 public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
@@ -37,6 +46,7 @@ public class AppView extends Application {
     private static final String LAST_USED_FOLDER = "lastUsedFolder";
 
     private void saveState(Stage stage) {
+
         Preferences prefs = Preferences.userNodeForPackage(AppView.class);
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save State");
@@ -55,14 +65,12 @@ public class AppView extends Application {
         if (file != null) {
             try {
                 AppState state = new AppState();
-                state.setEntities(getEntitiesFromRoot());
-                state.setAttributes(getAttributesFromRoot());
-                state.setRelations(getRelationsFromRoot());
-                state.setConnections(getLinesFromRoot());
+                state.setEntityObjects(getEntitiesFromRoot());
+                state.setAttributeObjects(getAttributesFromRoot());
+                state.setRelationObjects(getRelationsFromRoot());
+                state.setConnectionObjects(getLinesFromRoot());
 
                 StateManager.saveState(state, file.getPath());
-
-                System.out.println(state.getAttributes() + " entities: " + state.getEntityObjects());
 
                 // Save the directory of the selected file
                 prefs.put(LAST_USED_FOLDER, file.getParentFile().getPath());
@@ -134,13 +142,6 @@ public class AppView extends Application {
         return lines;
     }
 
-    private void restoreStateToRoot(AppState state) {
-        root.getChildren().clear();
-        root.getChildren().addAll(state.getEntityObjects());
-        root.getChildren().addAll(state.getAttributeObjects());
-        root.getChildren().addAll(state.getRelationObjects());
-        root.getChildren().addAll(state.getConnectionObjects());
-    }
 
 
 
@@ -277,7 +278,7 @@ public class AppView extends Application {
                 // Create a new entity
                 double entityWidth = 100;
                 double entityHeight = 50;
-                Entity entity = new Entity(clickX - entityWidth / 2, clickY - entityHeight / 2, entityWidth, entityHeight);
+                Entity entity = new Entity(clickX - entityWidth / 2, clickY - entityHeight / 2, entityWidth, entityHeight,false);
                 root.getChildren().add(entity);
                 entity.setSelected(true);
                 selectedNode = entity;
@@ -338,10 +339,13 @@ public class AppView extends Application {
                                 other = node;
                                 controller.connectNodes(one, other, root, lines);
                                 // a kapcsolodok hozzárendelése aa vonalhoz
-                                for (int i = lines.size() - 1 ; i > 0 ; i--) {
-                                    lines.get(i).setStartNode(one);
-                                    lines.get(i).setEndNode(other);
-                                    System.out.println(lines.get(i).getStartNode() + " ,asoidk " + lines.get(i).getEndNode());
+                                for (int i = lines.size() - 1 ; i >= 0 ; i--) {
+
+                                    OwnLine lastLine = lines.get(lines.size() - 1);  // Get the last added line
+                                    lastLine.setStartNodeId(String.valueOf(one));            // Set start node ID
+                                    lastLine.setEndNodeId(String.valueOf(other));            // Set end node ID
+                                    System.out.println(lastLine.getStartNodeId());
+                                    System.out.println("End Node ID: " + lastLine.getEndNodeId());
                                 }
                                 one = null;
                                 other = null;
@@ -351,7 +355,7 @@ public class AppView extends Application {
                     }
                 }
             } else if (controller.isSpecializeClicked()) {
-                SpecializerRelation specializerRelation = new SpecializerRelation(clickX / 2 + 20 ,clickY / 2 + 20);
+                SpecializerRelation specializerRelation = new SpecializerRelation(clickX-30 ,clickY-30);
                 root.getChildren().add(specializerRelation);
                 selectedNode = specializerRelation;
                 // Deselect all other nodes
@@ -429,23 +433,80 @@ public class AppView extends Application {
     }
 
     private void loadState(Stage stage) {
+        Preferences prefs = Preferences.userNodeForPackage(AppView.class);
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load State");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
 
-        File file = fileChooser.showOpenDialog(stage);
-        if (file != null) {
-            try {
-                AppState state = hu.szakdolgozat.model.StateManager.loadState(file.getPath());
-                restoreStateToRoot(state);
-                System.out.println("State loaded from " + file.getPath());
-            } catch (IOException e) {
-                System.out.println("Error loading state: " + e.getMessage());
-                e.printStackTrace();
+        String lastUsedFolderPath = prefs.get(LAST_USED_FOLDER, null);
+        if (lastUsedFolderPath != null) {
+            File lastUsedFolder = new File(lastUsedFolderPath);
+            if (lastUsedFolder.exists() && lastUsedFolder.isDirectory()) {
+                fileChooser.setInitialDirectory(lastUsedFolder);
             }
-        } else {
-            System.out.println("File selection was canceled or failed.");
         }
+
+        File file = fileChooser.showOpenDialog(stage);
+
+        System.out.println(file.getPath());
+
+        try {
+            // Load AppState from JSON file
+            AppState appState = StateManager.loadState(file.getPath());
+
+
+            // Create a BorderPane layout
+            BorderPane borderPane = new BorderPane();
+
+            // Create a Pane for displaying the entities
+            Pane root = new Pane();
+            root.getStyleClass().add("root"); // You can style this with a CSS class
+
+            // Add entities to the root pane
+            Entity[] entities = appState.getEntityObjects().toArray(new Entity[0]);
+            for (Entity entity : entities) {
+                // Set position and add entity to the pane
+                entity.setLayoutX(entity.getPosX());
+                entity.setLayoutY(entity.getPosY());
+                root.getChildren().add(entity);
+            }
+
+            // Create a button panel and add it to the left of the BorderPane
+            VBox buttonPanel = new VBox(10);
+            Button someButton = new Button("Some Action"); // Example button
+            buttonPanel.getChildren().add(someButton);
+            borderPane.setLeft(buttonPanel);
+
+            // Set the root pane in the center of the BorderPane
+            borderPane.setCenter(root);
+
+            // Create a MenuBar with Save and Load options
+            MenuBar menuBar = new MenuBar();
+            Menu fileMenu = new Menu("File");
+
+            // Add Save and Load menu items
+            MenuItem saveMenuItem = new MenuItem("Save");
+            saveMenuItem.setOnAction(e -> saveState(stage)); // Define saveState method separately
+
+            MenuItem loadMenuItem = new MenuItem("Load");
+            loadMenuItem.setOnAction(e -> loadState(stage)); // Call loadState recursively for loading
+
+            fileMenu.getItems().addAll(saveMenuItem, loadMenuItem);
+            menuBar.getMenus().add(fileMenu);
+
+            // Add the MenuBar to the top of the BorderPane
+            borderPane.setTop(menuBar);
+
+            // Create a new Scene with the BorderPane and set it on the stage
+            Scene scene = new Scene(borderPane, 700, 500);
+            stage.setScene(scene);
+            stage.show(); // Show the stage with the new scene
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public static void main(String[] args) {

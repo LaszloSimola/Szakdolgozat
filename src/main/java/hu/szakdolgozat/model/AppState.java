@@ -1,10 +1,12 @@
 package hu.szakdolgozat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AppState {
@@ -13,11 +15,17 @@ public class AppState {
     private List<Relation.RelationDTO> relations;
     private List<OwnLine.OwnLineDTO> connections;
 
+    // Entities
     public List<Entity.EntityDTO> getEntities() {
         return entities;
     }
 
-    public void setEntities(List<Entity> entities) {
+    public void setEntities(List<Entity.EntityDTO> entityDTOs) {
+        this.entities = entityDTOs;
+    }
+
+    @JsonIgnore
+    public void setEntityObjects(List<Entity> entities) {
         this.entities = entities.stream().map(Entity::toDTO).collect(Collectors.toList());
     }
 
@@ -26,11 +34,17 @@ public class AppState {
         return entities.stream().map(Entity::fromDTO).collect(Collectors.toList());
     }
 
+    // Attributes
     public List<Attribute.AttributeDTO> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<Attribute> attributes) {
+    public void setAttributes(List<Attribute.AttributeDTO> attributeDTOs) {
+        this.attributes = attributeDTOs;
+    }
+
+    @JsonIgnore
+    public void setAttributeObjects(List<Attribute> attributes) {
         this.attributes = attributes.stream().map(Attribute::toDTO).collect(Collectors.toList());
     }
 
@@ -39,11 +53,17 @@ public class AppState {
         return attributes.stream().map(Attribute::fromDTO).collect(Collectors.toList());
     }
 
+    // Relations
     public List<Relation.RelationDTO> getRelations() {
         return relations;
     }
 
-    public void setRelations(List<Relation> relations) {
+    public void setRelations(List<Relation.RelationDTO> relationDTOs) {
+        this.relations = relationDTOs;
+    }
+
+    @JsonIgnore
+    public void setRelationObjects(List<Relation> relations) {
         this.relations = relations.stream().map(Relation::toDTO).collect(Collectors.toList());
     }
 
@@ -52,20 +72,23 @@ public class AppState {
         return relations.stream().map(Relation::fromDTO).collect(Collectors.toList());
     }
 
+    // OwnLines
     public List<OwnLine.OwnLineDTO> getConnections() {
         return connections;
     }
 
+    public void setConnections(List<OwnLine.OwnLineDTO> connectionDTOs) {
+        this.connections = connectionDTOs;
+    }
 
-    public void setConnections(List<OwnLine> connections) {
+    @JsonIgnore
+    public void setConnectionObjects(List<OwnLine> connections) {
         this.connections = connections.stream().map(OwnLine::toDTO).collect(Collectors.toList());
     }
 
     @JsonIgnore
     public List<OwnLine> getConnectionObjects() {
-        // Use a lambda expression instead of method reference to pass nodeMap to fromDTO()
-        return connections.stream()
-                .map(OwnLine::fromDTO) // Pass nodeMap to fromDTO
-                .collect(Collectors.toList());
+        return connections.stream().map(OwnLine::fromDTO).collect(Collectors.toList());
     }
 }
+

@@ -41,16 +41,17 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
     }
 
     public Entity() {
-        this(0, 0, 100, 50); // Default values for position, width, and height
+        this(0, 0, 100, 50,false); // Default values for position, width, and height
     }
 
     public Entity(double posX, double posY) {
-        this(posX, posY, 100, 50); // Default values for width and height
+        this(posX, posY, 100, 50,false); // Default values for width and height
     }
 
-    public Entity(@JsonProperty("x") double posX, @JsonProperty("y") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height) {
+    public Entity(@JsonProperty("x") double posX, @JsonProperty("y") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("isWeakEntity")boolean isWeakEntity) {
         this.posX = posX;
         this.posY = posY;
+        this.isWeakEntity = isWeakEntity;
 
         rectangle = new Rectangle(width, height);
         rectangle.setFill(Color.WHITE);
@@ -165,14 +166,19 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         return rectangle.contains(x - getLayoutX(), y - getLayoutY());
     }
 
-    // Convert to a DTO for serialization
+    // Convert Entity to DTO
     public EntityDTO toDTO() {
-        return new EntityDTO(posX, posY, rectangle.getWidth(), rectangle.getHeight(), textNode.getText(), strokeColor.toString(), strokeWidth,isWeakEntity);
+        return new EntityDTO(posX, posY, rectangle.getWidth(), rectangle.getHeight(),
+                textNode.getText(), strokeColor.toString(), strokeWidth, isWeakEntity);
     }
 
-    // Convert from a DTO to an Entity
+    // Convert DTO back to Entity
     public static Entity fromDTO(EntityDTO dto) {
-        Entity entity = new Entity(dto.getPosX(), dto.getPosY(), dto.getWidth(), dto.getHeight());
+        Entity entity = new Entity();
+        entity.setPosX(dto.getPosX());
+        entity.setPosY(dto.getPosY());
+        entity.setHeight(dto.getHeight());
+        entity.setWidth(dto.getWidth());
         entity.setTextNode(dto.getText());
         entity.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
         entity.setStrokeWidth(dto.getStrokeWidth());
@@ -180,7 +186,7 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         return entity;
     }
 
-    // DTO class for Entity
+    // DTO class
     public static class EntityDTO {
         private double posX;
         private double posY;
@@ -189,9 +195,14 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
         private String text;
         private String strokeColor;
         private double strokeWidth;
+        @JsonProperty("isWeakEntity")
         private boolean isWeakEntity;
 
-        public EntityDTO(@JsonProperty("posX") double posX, @JsonProperty("posY") double posY, @JsonProperty("width") double width, @JsonProperty("height") double height, @JsonProperty("text") String text, @JsonProperty("strokeColor") String strokeColor, @JsonProperty("strokeWidth") double strokeWidth, @JsonProperty("isWeakEntity") boolean isWeakEntity) {
+        // No-argument constructor
+        public EntityDTO() {
+        }
+
+        public EntityDTO(double posX, double posY, double width, double height, String text, String strokeColor, double strokeWidth, boolean isWeakEntity) {
             this.posX = posX;
             this.posY = posY;
             this.width = width;
@@ -202,41 +213,16 @@ public class Entity extends StackPane implements Serializable, Selectable, Dragg
             this.isWeakEntity = isWeakEntity;
         }
 
-        // Getters and setters for the new field
-        public boolean isWeakEntity() {
-            return isWeakEntity;
-        }
-
-        public void setWeakEntity(boolean weakEntity) {
-            isWeakEntity = weakEntity;
-        }
-
-        public double getPosX() {
-            return posX;
-        }
-
-        public double getPosY() {
-            return posY;
-        }
-
-        public double getWidth() {
-            return width;
-        }
-
-        public double getHeight() {
-            return height;
-        }
-
-        public String getText() {
-            return text;
-        }
-
-        public String getStrokeColor() {
-            return strokeColor;
-        }
-
-        public double getStrokeWidth() {
-            return strokeWidth;
-        }
+        // Getters for DTO
+        public double getPosX() { return posX; }
+        public double getPosY() { return posY; }
+        public double getWidth() { return width; }
+        public double getHeight() { return height; }
+        public String getText() { return text; }
+        public String getStrokeColor() { return strokeColor; }
+        public double getStrokeWidth() { return strokeWidth; }
+        @JsonProperty("isWeakEntity")
+        public boolean isWeakEntity() { return isWeakEntity; }
     }
 }
+
