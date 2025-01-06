@@ -42,13 +42,21 @@ public class AttributeModify extends Stage {
         CheckBox multiValuedCheckbox = new CheckBox();
         multiValuedCheckbox.setSelected(attribute.isMultiValue());
 
-        root.addColumn(0, label, widthText, heightText, colorText, strokeWidthText, isMultivalued);
-        root.addColumn(1, labelTextField, widthSpinner, heightSpinner, colorPicker, strokeWidthSpinner,multiValuedCheckbox);
+        Text kulcsText = new Text("Kulcs:");
+        CheckBox kulcsCheckbox = new CheckBox();
+        kulcsCheckbox.setSelected(attribute.isKulcs());
+
+        Text gyengeKulcsText = new Text("Gyenge Kulcs:");
+        CheckBox gyengeKulcsCheckbox = new CheckBox();
+        gyengeKulcsCheckbox.setSelected(attribute.isGyengeKulcs());
+
+        root.addColumn(0, label, widthText, heightText, colorText, strokeWidthText, isMultivalued,kulcsText,gyengeKulcsText);
+        root.addColumn(1, labelTextField, widthSpinner, heightSpinner, colorPicker, strokeWidthSpinner,multiValuedCheckbox,kulcsCheckbox,gyengeKulcsCheckbox);
 
         Button okBtn = new Button("ok");
         Button cancelBtn = new Button("megse");
 
-        root.addRow(6, okBtn, cancelBtn);
+        root.addRow(8, okBtn, cancelBtn);
 
         cancelBtn.setOnAction(e -> close());
 
@@ -64,6 +72,8 @@ public class AttributeModify extends Stage {
             attribute.setStrokeColor(colorPicker.getValue());
             attribute.setStrokeWidth(strokeWidthSpinner.getValue());
             attribute.setSelected(multiValuedCheckbox.isSelected());
+            attribute.setKulcs(kulcsCheckbox.isSelected());
+            attribute.setGyengeKulcs(gyengeKulcsCheckbox.isSelected());
             close();
         });
 

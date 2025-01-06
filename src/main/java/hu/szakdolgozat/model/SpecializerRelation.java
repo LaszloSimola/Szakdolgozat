@@ -7,6 +7,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 import java.io.Serializable;
 
+import static javafx.scene.paint.Color.WHITE;
+
 public class SpecializerRelation extends StackPane implements Serializable, Selectable, Draggable {
     private double posX;
     private double posY;
@@ -29,7 +31,7 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
         this.posY = posY;
 
         triangle = createTriangle(width, height);
-        triangle.setFill(Color.WHITE);
+        triangle.setFill(WHITE);
         triangle.setStroke(strokeColor);
         triangle.setStrokeWidth(strokeWidth);
 
@@ -46,12 +48,13 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
     private Polygon createTriangle(double width, double height) {
         Polygon polygon = new Polygon();
         polygon.getPoints().addAll(
-                width / 2, 0.0,        // Top middle vertex (previously bottom middle)
-                width, height,         // Bottom right vertex (previously top right)
-                0.0, height            // Bottom left vertex (previously top left)
+                width / 2, 0.0,       // Top vertex (center of the width, top)
+                0.0, height,          // Bottom left vertex
+                width, height         // Bottom right vertex
         );
         return polygon;
     }
+
 
 
     // Getters, Setters
@@ -129,16 +132,30 @@ public class SpecializerRelation extends StackPane implements Serializable, Sele
 
     // Convert to a DTO for serialization
     public SpecializerDTO toDTO() {
-        return new SpecializerDTO(posX, posY, triangle.getPoints().get(2), triangle.getPoints().get(4), strokeColor.toString(), strokeWidth);
+        return new SpecializerDTO(posX, posY,getWidth(), getHeight(), strokeColor.toString(), strokeWidth);
     }
 
-    // Convert from a DTO to a Specializer
+    // Convert from a DTO to a SpecializerRelation
     public static SpecializerRelation fromDTO(SpecializerDTO dto) {
+        // Create a new SpecializerRelation object with the necessary properties from the DTO
         SpecializerRelation specializer = new SpecializerRelation(dto.getPosX(), dto.getPosY(), dto.getWidth(), dto.getHeight());
+
+        // Set up the triangle properties based on the DTO
         specializer.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
         specializer.setStrokeWidth(dto.getStrokeWidth());
+
+        // Create and add the triangle again using the correct dimensions
+        specializer.triangle = specializer.createTriangle(dto.getWidth(), dto.getHeight());
+
+        // Ensure the triangle is added to the StackPane
+        specializer.getChildren().add(specializer.triangle);
+        specializer.triangle.setFill(WHITE);
+
+        // Return the fully initialized SpecializerRelation
         return specializer;
     }
+
+
 
     // DTO class for Specializer
     public static class SpecializerDTO {

@@ -12,6 +12,8 @@ import javafx.scene.text.TextAlignment;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.Arrays;
+
 public class Relation extends StackPane implements Serializable, Selectable, Draggable {
     private double posX;
     private double posY;
@@ -34,25 +36,23 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
         polygon.setStroke(strokeColor);
         polygon.setStrokeWidth(strokeWidth);
 
-        // Create the outer polygon slightly larger
-        outerPolygon = new Polygon(scalePoints(points, 15)); // Add 10 units to create a larger outline
+        // Position the StackPane at (posX, posY) without further layout adjustment
+
+
+        outerPolygon = new Polygon(scalePoints(points, 15));
         outerPolygon.setFill(Color.TRANSPARENT);
         outerPolygon.setStroke(strokeColor);
         outerPolygon.setStrokeWidth(2);
-        outerPolygon.setVisible(IsIdentify); // Initially hidden
+        outerPolygon.setVisible(IsIdentify);
 
-        // Add both polygons to the StackPane, outer first so it is behind
+        // Add the polygons and text node
         getChildren().addAll(outerPolygon, polygon);
         setTextNode("Relation");
 
-        setAlignment(polygon, Pos.CENTER);
         setLayoutX(posX);
         setLayoutY(posY);
-
-        // Ensure that text is always centered
-        widthProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
-        heightProperty().addListener((obs, oldVal, newVal) -> setAlignment(textNode, Pos.CENTER));
     }
+
 
     public boolean isISIdentify() {
         return IsIdentify;
@@ -196,7 +196,15 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
     }
     // Convert to a DTO for serialization
     public RelationDTO toDTO() {
-        return new RelationDTO(posX, posY, polygon.getPoints().stream().mapToDouble(Double::doubleValue).toArray(), textNode.getText(), strokeColor.toString(), strokeWidth, size);
+        return new RelationDTO(
+                getLayoutX(),
+                getLayoutY(),
+                polygon.getPoints().stream().mapToDouble(Double::doubleValue).toArray(),
+                textNode.getText(),
+                strokeColor.toString(),
+                strokeWidth,
+                size
+        );
     }
 
     // Convert from a DTO to a Relation
@@ -206,6 +214,9 @@ public class Relation extends StackPane implements Serializable, Selectable, Dra
         relation.setStrokeColor(Color.valueOf(dto.getStrokeColor()));
         relation.setStrokeWidth(dto.getStrokeWidth());
         relation.setSize(dto.getSize());
+
+        relation.setLayoutX(dto.getPosX());
+        relation.setLayoutY(dto.getPosY());
         return relation;
     }
 

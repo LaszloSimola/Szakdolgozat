@@ -14,7 +14,36 @@ public class AppState {
     private List<Attribute.AttributeDTO> attributes;
     private List<Relation.RelationDTO> relations;
     private List<OwnLine.OwnLineDTO> connections;
+    private List<SpecializerRelation.SpecializerDTO> specializerRelations;
 
+    @JsonIgnore
+    public List<Node> getAllNodes() {
+        // Combine all the node lists into one list
+        return Arrays.asList(
+                getEntityObjects(),
+                getAttributeObjects(),
+                getRelationObjects(),
+                getSpecializerRelationObjects()
+        ).stream().flatMap(List::stream).collect(Collectors.toList());
+    }
+    //specializerRelation
+    public List<SpecializerRelation.SpecializerDTO> getSpecializerRelations() {
+        return specializerRelations;
+    }
+
+    public void setSpecializerRelations(List<SpecializerRelation.SpecializerDTO> specializerRelations) {
+        this.specializerRelations = specializerRelations;
+    }
+
+    @JsonIgnore
+    public void setSpecializerObjects(List<SpecializerRelation> specializerRelations) {
+        this.specializerRelations = specializerRelations.stream().map(SpecializerRelation::toDTO).collect(Collectors.toList());
+    }
+
+    @JsonIgnore
+    public List<SpecializerRelation> getSpecializerRelationObjects() {
+        return specializerRelations.stream().map(SpecializerRelation::fromDTO).collect(Collectors.toList());
+    }
     // Entities
     public List<Entity.EntityDTO> getEntities() {
         return entities;

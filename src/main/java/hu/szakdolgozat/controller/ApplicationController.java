@@ -113,6 +113,13 @@ public class ApplicationController {
     public void connectNodes(Node startNode, Node endNode, Pane root, List<OwnLine> lines) {
         // Draw a line between startNode and endNode
         OwnLine line = new OwnLine();
+
+        // Debugging: Print start and end node bounds
+        System.out.println("Connecting nodes:");
+        System.out.println("Start Node Bounds: " + startNode.getBoundsInParent());
+        System.out.println("End Node Bounds: " + endNode.getBoundsInParent());
+
+
         line.startXProperty().bind(Bindings.createDoubleBinding(() -> {
             Bounds bounds = startNode.getBoundsInParent();
             return bounds.getMinX() + bounds.getWidth() / 2;

@@ -5,16 +5,21 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import hu.szakdolgozat.controller.ApplicationController;
 import hu.szakdolgozat.model.*;
 import javafx.application.Application;
+import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -33,6 +38,7 @@ public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
     private Node selectedNode;
     private Node one, other;
+    private Node startNode, endNode;
     private double mouseDownX;
     private double mouseDownY;
     private boolean isConnectButtonVisible = false;
@@ -69,6 +75,7 @@ public class AppView extends Application {
                 state.setAttributeObjects(getAttributesFromRoot());
                 state.setRelationObjects(getRelationsFromRoot());
                 state.setConnectionObjects(getLinesFromRoot());
+                state.setSpecializerObjects(getSpecializerRelationsFromRoot());
 
                 StateManager.saveState(state, file.getPath());
 
@@ -141,6 +148,15 @@ public class AppView extends Application {
         }
         return lines;
     }
+    private List<SpecializerRelation> getSpecializerRelationsFromRoot() {
+        List<SpecializerRelation> relations = new ArrayList<>();
+        for (Node node : root.getChildren()) {
+            if (node instanceof SpecializerRelation) {
+                relations.add((SpecializerRelation) node);
+            }
+        }
+        return relations;
+    }
 
 
 
@@ -209,7 +225,10 @@ public class AppView extends Application {
         MenuItem loadMenuItem = new MenuItem("Load");
         loadMenuItem.setOnAction(e -> loadState(stage));
 
-        fileMenu.getItems().addAll(saveMenuItem, loadMenuItem);
+        MenuItem savePngMenuItem = new MenuItem("Save as PNG");
+        savePngMenuItem.setOnAction(e -> saveRootAsPng(stage));
+
+        fileMenu.getItems().addAll(saveMenuItem, loadMenuItem,savePngMenuItem);
         menuBar.getMenus().add(fileMenu);
 
         borderPane.setTop(menuBar);
@@ -264,6 +283,7 @@ public class AppView extends Application {
             mouseDownY = event.getY();
             double clickX = event.getX();
             double clickY = event.getY();
+            System.out.println(clickX + " " + clickY);
 
             // Deselect others at the same time
             for (Node n : root.getChildren()) {
@@ -280,6 +300,7 @@ public class AppView extends Application {
                 double entityHeight = 50;
                 Entity entity = new Entity(clickX - entityWidth / 2, clickY - entityHeight / 2, entityWidth, entityHeight,false);
                 root.getChildren().add(entity);
+                System.out.println("entity positons: " + entity.getPosX() + " " + entity.getPosY());
                 entity.setSelected(true);
                 selectedNode = entity;
                 entity.setTextNode("Entity");
@@ -292,10 +313,9 @@ public class AppView extends Application {
                 }
                 controller.setEntityClicked(false);
             } else if (controller.isAttributeClicked()) {
-                double attributeWidth = 115;
-                double attributeHeight = 50;
-                Attribute attribute = new Attribute(clickX - attributeWidth / 2, clickY - attributeHeight / 2, attributeHeight, attributeWidth);
+                Attribute attribute = new Attribute(clickX , clickY,25,55);
                 root.getChildren().add(attribute);
+                System.out.println( "attrubite coordinates: " + attribute.getPosX() + " " + attribute.getPosY());
                 attribute.setSelected(true);
                 selectedNode = attribute;
                 // Deselect all other nodes
@@ -309,11 +329,14 @@ public class AppView extends Application {
             }else if (controller.isRelationshipClicked()) {
                 double size = 70;
                 double[] points = {
-                        clickX, clickY - size / 2,
-                        clickX + size / 2, clickY,
-                        clickX, clickY + size / 2,
-                        clickX - size / 2, clickY
+                        0, -size / 2,       // Top point relative to center
+                        size / 2, 0,        // Right point
+                        0, size / 2,        // Bottom point
+                        -size / 2, 0        // Left point
                 };
+
+
+                // Instantiate the Relation at the click location (clickX, clickY)
                 Relation diamond = new Relation(clickX, clickY, points);
                 root.getChildren().add(diamond);
                 diamond.setLayoutX(clickX - size / 2);
@@ -328,7 +351,8 @@ public class AppView extends Application {
                     }
                 }
                 controller.setRelationshipClicked(false);
-            } else if (controller.isConnectClicked()) {
+            }
+            else if (controller.isConnectClicked()) {
                 for (Node node : root.getChildren()) {
                     if (!(node instanceof Line)) {
                         if (node.contains(clickX, clickY)) {
@@ -337,19 +361,25 @@ public class AppView extends Application {
                                 break;
                             } else if (one != node) {
                                 other = node;
-                                controller.connectNodes(one, other, root, lines);
-                                // a kapcsolodok hozzárendelése aa vonalhoz
-                                for (int i = lines.size() - 1 ; i >= 0 ; i--) {
+                                if (one instanceof Entity && other instanceof Entity) {
+                                    Alert alert = new Alert(Alert.AlertType.WARNING,"Entity can not be connected to Entity!");
+                                    alert.setTitle("Connection failed");
+                                    alert.setHeaderText("Invalid Connection");
+                                    alert.showAndWait();
+                                }else{
+                                    controller.connectNodes(one, other, root, lines);
+                                    // a kapcsolodok hozzárendelése aa vonalhoz
+                                    for (int i = lines.size() - 1 ; i >= 0 ; i--) {
 
-                                    OwnLine lastLine = lines.get(lines.size() - 1);  // Get the last added line
-                                    lastLine.setStartNodeId(String.valueOf(one));            // Set start node ID
-                                    lastLine.setEndNodeId(String.valueOf(other));            // Set end node ID
-                                    System.out.println(lastLine.getStartNodeId());
-                                    System.out.println("End Node ID: " + lastLine.getEndNodeId());
+                                        OwnLine lastLine = lines.get(lines.size() - 1);  // Get the last added line
+                                        lastLine.setStartNodeId(String.valueOf(one));            // Set start node ID
+                                        lastLine.setEndNodeId(String.valueOf(other));            // Set end node ID
+
+                                    }
+                                    one = null;
+                                    other = null;
+                                    break;
                                 }
-                                one = null;
-                                other = null;
-                                break;
                             }
                         }
                     }
@@ -453,61 +483,123 @@ public class AppView extends Application {
         try {
             // Load AppState from JSON file
             AppState appState = StateManager.loadState(file.getPath());
+            root.getChildren().clear();
 
-
-            // Create a BorderPane layout
-            BorderPane borderPane = new BorderPane();
-
-            // Create a Pane for displaying the entities
-            Pane root = new Pane();
-            root.getStyleClass().add("root"); // You can style this with a CSS class
-
-            // Add entities to the root pane
-            Entity[] entities = appState.getEntityObjects().toArray(new Entity[0]);
-            for (Entity entity : entities) {
-                // Set position and add entity to the pane
-                entity.setLayoutX(entity.getPosX());
-                entity.setLayoutY(entity.getPosY());
-                root.getChildren().add(entity);
+            // First, add all non-line nodes
+            for (Node node : appState.getAllNodes()) {
+                    root.getChildren().add(node);
             }
+            for (OwnLine line : appState.getConnectionObjects()) {
+                Node startNode = null;
+                Node endNode = null;
 
-            // Create a button panel and add it to the left of the BorderPane
-            VBox buttonPanel = new VBox(10);
-            Button someButton = new Button("Some Action"); // Example button
-            buttonPanel.getChildren().add(someButton);
-            borderPane.setLeft(buttonPanel);
+                // Find the start node
+                for (Node node : root.getChildren()) {
+                    if (!(node instanceof OwnLine)) {
+                        Bounds bounds = node.getBoundsInParent(); // Get visual bounds
+                        if (bounds.contains(line.getStartX() - 30, line.getStartY() - 30)) {
+                            startNode = node;
+                            break; // Found the start node, exit this loop
+                        }
+                    }
+                }
 
-            // Set the root pane in the center of the BorderPane
-            borderPane.setCenter(root);
+                // Find the end node
+                for (Node node : root.getChildren()) {
+                    if (!(node instanceof OwnLine)) {
+                        Bounds bounds = node.getBoundsInParent(); // Get visual bounds
+                        if (bounds.contains(line.getEndX() - 30, line.getEndY() - 30)) {
+                            endNode = node;
+                            break; // Found the end node, exit this loop
+                        }
+                    }
+                }
+                // Bind the identified nodes to the line
+                if (startNode != null && endNode != null) {
+                    System.out.println("Connecting nodes for line from (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
+                    line.setStartNodeId(String.valueOf(startNode));
+                    line.setEndNodeId(String.valueOf(endNode));
+                    controller.connectNodes(startNode, endNode, root, lines);
+                } else {
+                    System.out.println("Failed to find matching nodes for line with coordinates: (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
+                }
 
-            // Create a MenuBar with Save and Load options
-            MenuBar menuBar = new MenuBar();
-            Menu fileMenu = new Menu("File");
 
-            // Add Save and Load menu items
-            MenuItem saveMenuItem = new MenuItem("Save");
-            saveMenuItem.setOnAction(e -> saveState(stage)); // Define saveState method separately
+                //for (Node node : root.getChildren()) {
+               //    if (!(node instanceof OwnLine)) {
+               //        Bounds bounds = node.getBoundsInParent();
+               //        if (bounds.contains(line.getStartX() - 30 ,line.getStartY() -30)){
+               //            startNode = node;
+               //            for (Node node1 : root.getChildren()){
+               //                Bounds bounds1 = node1.getBoundsInParent();
+               //                if (bounds1.contains(line.getEndX() - 30, line.getEndY() - 30)){
+               //                    endNode = node1;
+               //                    controller.connectNodes(startNode, endNode, root, lines);
+               //                }
+               //                if (startNode != null && endNode != null){
+               //                    break;
+               //                }
+               //            }
+               //        }
+               //    }
+               //}
 
-            MenuItem loadMenuItem = new MenuItem("Load");
-            loadMenuItem.setOnAction(e -> loadState(stage)); // Call loadState recursively for loading
-
-            fileMenu.getItems().addAll(saveMenuItem, loadMenuItem);
-            menuBar.getMenus().add(fileMenu);
-
-            // Add the MenuBar to the top of the BorderPane
-            borderPane.setTop(menuBar);
-
-            // Create a new Scene with the BorderPane and set it on the stage
-            Scene scene = new Scene(borderPane, 700, 500);
-            stage.setScene(scene);
-            stage.show(); // Show the stage with the new scene
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-
     }
+    private void saveRootAsPng(Stage stage) {
+        Preferences prefs = Preferences.userNodeForPackage(AppView.class);
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save as PNG");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG Files", "*.png"));
+
+        // Set initial directory to the last used directory
+        String lastUsedFolderPath = prefs.get(LAST_USED_FOLDER, null);
+        if (lastUsedFolderPath != null) {
+            File lastUsedFolder = new File(lastUsedFolderPath);
+            if (lastUsedFolder.exists() && lastUsedFolder.isDirectory()) {
+                fileChooser.setInitialDirectory(lastUsedFolder);
+            }
+        }
+
+        // Show save dialog
+        File file = fileChooser.showSaveDialog(stage);
+        if (file != null) {
+            try {
+                // Create a WritableImage to capture the root pane
+                WritableImage image = new WritableImage((int) root.getWidth(), (int) root.getHeight());
+                SnapshotParameters snapshotParameters = new SnapshotParameters();
+
+                // Take snapshot
+                root.snapshot(snapshotParameters, image);
+
+                // Write the image to the selected file
+
+                BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+                ImageIO.write(bufferedImage, "png", file);
+
+                // Display success alert
+                Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Save Successful");
+                successAlert.setHeaderText(null);
+                successAlert.setContentText("Image saved successfully to " + file.getPath());
+                successAlert.showAndWait();
+            } catch (IOException e) {
+                // Display error alert
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Save Failed");
+                errorAlert.setHeaderText("An error occurred while saving the image.");
+                errorAlert.setContentText(e.getMessage());
+                errorAlert.showAndWait();
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         launch();
