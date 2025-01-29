@@ -4,6 +4,7 @@ import hu.szakdolgozat.model.*;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
 
 import java.util.List;
@@ -21,10 +22,10 @@ public class ApplicationController {
         attributeClicked = false;
         entityClicked = false;
         specializeClicked = false;
-        if (connectClicked){
-            connectClicked = false;
+        if (isConnectClicked()){
+            setConnectClicked(false);
         }else{
-            connectClicked = true;
+            setConnectClicked(true);
         }
 
     }
@@ -33,41 +34,59 @@ public class ApplicationController {
         relationshipClicked = false;
         attributeClicked = false;
         specializeClicked = false;
-        if (!entityClicked) {
-            entityClicked = true;
+        if (!isEntityClicked()) {
+            setEntityClicked(true);
         } else {
-            entityClicked = false;
+            setEntityClicked(false);
         }
     }
     public void handleRelationButtonClick() {
         entityClicked = false;
         attributeClicked = false;
         specializeClicked = false;
-        if (!relationshipClicked) {
-            relationshipClicked = true;
+        if (!isRelationshipClicked()) {
+            setRelationshipClicked(true);
         } else {
-            relationshipClicked = false;
+            setRelationshipClicked(false);
         }
     }
     public void handleAttributeButtonClick() {
         entityClicked = false;
         relationshipClicked = false;
         specializeClicked = false;
-        if (!attributeClicked) {
-            attributeClicked = true;
+        if (!isAttributeClicked()) {
+            setAttributeClicked(true);
         } else {
-            attributeClicked = false;
+            setAttributeClicked(false);
         }
     }
     public void handleSpecializeButtonClick() {
         entityClicked = false;
         relationshipClicked = false;
         attributeClicked = false;
-        if (!specializeClicked) {
-            specializeClicked = true;
+        if (!isSpecializeClicked()) {
+            setSpecializeClicked(true);
             System.out.println("clicked");
         } else {
-            specializeClicked = false;
+            setSpecializeClicked(false);
+        }
+    }
+    // Track the currently active button
+    private Button activeButton = null;
+
+    public void toggleButtonStyle(Button button, String styleClass) {
+        if (activeButton == button) {
+            button.getStyleClass().remove(styleClass);
+            activeButton = null; // No button is active now
+        } else {
+            // Reset the previously active button (if any)
+            if (activeButton != null) {
+                activeButton.getStyleClass().remove(styleClass);
+            }
+
+            // Apply the new style to the clicked button
+            button.getStyleClass().add(styleClass);
+            activeButton = button; // Set the new active button
         }
     }
 

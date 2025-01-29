@@ -78,6 +78,12 @@
         -fx-background-color: #0D47A1;
     }
 
+    /* Clicked button state */
+    .action-button-clicked {
+        -fx-background-color: #0d8a3f !important; /* Dark Green */
+    }
+
+
 
 
 
