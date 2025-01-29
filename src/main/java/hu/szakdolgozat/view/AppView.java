@@ -466,7 +466,6 @@ public class AppView extends Application {
                     ((Draggable) selectedNode).drag(deltaX, deltaY);
                     mouseDownX = event.getX();
                     mouseDownY = event.getY();
-                    System.out.println("Node Dragged");
                 }
             }
         });
@@ -490,11 +489,7 @@ public class AppView extends Application {
                 fileChooser.setInitialDirectory(lastUsedFolder);
             }
         }
-
         File file = fileChooser.showOpenDialog(stage);
-
-        System.out.println(file.getPath());
-
         try {
             // Load AppState from JSON file
             AppState appState = StateManager.loadState(file.getPath());
@@ -538,27 +533,6 @@ public class AppView extends Application {
                 } else {
                     System.out.println("Failed to find matching nodes for line with coordinates: (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
                 }
-
-
-                //for (Node node : root.getChildren()) {
-               //    if (!(node instanceof OwnLine)) {
-               //        Bounds bounds = node.getBoundsInParent();
-               //        if (bounds.contains(line.getStartX() - 30 ,line.getStartY() -30)){
-               //            startNode = node;
-               //            for (Node node1 : root.getChildren()){
-               //                Bounds bounds1 = node1.getBoundsInParent();
-               //                if (bounds1.contains(line.getEndX() - 30, line.getEndY() - 30)){
-               //                    endNode = node1;
-               //                    controller.connectNodes(startNode, endNode, root, lines);
-               //                }
-               //                if (startNode != null && endNode != null){
-               //                    break;
-               //                }
-               //            }
-               //        }
-               //    }
-               //}
-
             }
 
         } catch (IOException e) {

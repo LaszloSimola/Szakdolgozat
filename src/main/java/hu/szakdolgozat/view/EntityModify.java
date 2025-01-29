@@ -22,25 +22,25 @@ public class EntityModify extends Stage {
         root.setHgap(30);
         root.setPadding(new Insets(10, 10, 10, 10));
 
-        Text label = new Text("Címke:");
+        Text label = new Text("Label:");
         TextField labelTextfield = new TextField(entity.getTextNode().getText()); // Set the initial text
 
-        Text szelesseg = new Text("Szélesség:");
+        Text szelesseg = new Text("Width:");
         Spinner<Integer> szelessegSpinner = new Spinner<>(1, 500, (int) entity.getRectangle().getWidth());
         szelessegSpinner.setEditable(true);
 
-        Text magassag = new Text("Magasság:");
+        Text magassag = new Text("Height:");
         Spinner<Integer> magassagSpinner = new Spinner<>(1, 500, (int) entity.getRectangle().getHeight());
         magassagSpinner.setEditable(true);
 
-        Text szinText = new Text("Szín:");
+        Text szinText = new Text("Color:");
         ColorPicker colorPicker = new ColorPicker(entity.getStrokeColor());
 
-        Text vastagsag = new Text("Vonalvastagság:");
+        Text vastagsag = new Text("Line Width:");
         Spinner<Integer> vastagsagspinner = new Spinner<>(1, 10, (int) entity.getStrokeWidth()); // Updated to use entity's strokeWidth
         vastagsagspinner.setEditable(true);
 
-        Text gyengeEgyedText = new Text("Gyenge egyed:");
+        Text gyengeEgyedText = new Text("Weak Entity:");
         CheckBox gyengeEgyedCheckbox = new CheckBox();
         gyengeEgyedCheckbox.setSelected(entity.isWeakEntity());
 
@@ -48,7 +48,7 @@ public class EntityModify extends Stage {
         root.addColumn(1, labelTextfield, szelessegSpinner, magassagSpinner, colorPicker, vastagsagspinner, gyengeEgyedCheckbox);
 
         Button okBtn = new Button("ok");
-        Button megseBtn = new Button("megse");
+        Button megseBtn = new Button("Cancel");
 
         root.addRow(6, okBtn, megseBtn);
 
@@ -65,6 +65,7 @@ public class EntityModify extends Stage {
             close();
         });
 
+        this.setTitle("Entity Modify");
         Scene scene = new Scene(root);
         this.setScene(scene);
         show();

@@ -66,7 +66,6 @@ public class ApplicationController {
         attributeClicked = false;
         if (!isSpecializeClicked()) {
             setSpecializeClicked(true);
-            System.out.println("clicked");
         } else {
             setSpecializeClicked(false);
         }
