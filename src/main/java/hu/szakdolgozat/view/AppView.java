@@ -381,7 +381,7 @@ public class AppView extends Application {
                                     alert.setHeaderText("Invalid Connection");
                                     alert.showAndWait();
                                 }else{
-                                    controller.connectNodes(one, other, root, lines);
+                                    controller.connectNodes(one, other, root, lines,true,true);
                                     // a kapcsolodok hozzárendelése aa vonalhoz
                                     for (int i = lines.size() - 1 ; i >= 0 ; i--) {
 
@@ -529,7 +529,7 @@ public class AppView extends Application {
                     System.out.println("Connecting nodes for line from (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
                     line.setStartNodeId(String.valueOf(startNode));
                     line.setEndNodeId(String.valueOf(endNode));
-                    controller.connectNodes(startNode, endNode, root, lines);
+                    controller.connectNodes(startNode, endNode, root, lines,true,true);
                 } else {
                     System.out.println("Failed to find matching nodes for line with coordinates: (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
                 }
