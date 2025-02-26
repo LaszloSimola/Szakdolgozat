@@ -255,26 +255,33 @@ public class AppView extends Application {
 
         deleteButton.setOnAction(e -> {
             if (selectedNode != null) {
+                List<Node> toRemove = new ArrayList<>();
+
                 for (Node node : root.getChildren()) {
                     if (node instanceof Arrow) {
-                        if (LineChecker.isArrowEndBoundToEntity((Arrow) node, selectedNode)) {
-                            System.out.println("connected");
+                        Arrow arrow = (Arrow) node;
+                        if (LineChecker.isArrowEndBoundToEntity(arrow, selectedNode)) {
+                            System.out.println("Connected arrow found, removing...");
+                            toRemove.add(arrow);
                         }
                     }
                 }
 
-                // Remove selected entity
+                // Remove all arrows connected to the selected node
+                root.getChildren().removeAll(toRemove);
+
+                // Remove the selected entity itself
                 root.getChildren().remove(selectedNode);
                 selectedNode = null;
 
-
-                // Debug output to verify
+                // Debug output
                 System.out.println("Remaining children in root:");
                 for (Node node : root.getChildren()) {
                     System.out.println(node);
                 }
             }
         });
+
 
 
         root.setOnMousePressed(event -> {

@@ -28,22 +28,18 @@ public class LineChecker {
     public static boolean isArrowEndBoundToEntity(Arrow arrow, Node entity) {
         Bounds entityBounds = entity.getBoundsInParent();
 
-        double entityCenterX = entityBounds.getMinX() + entityBounds.getWidth() / 2;
-        double entityCenterY = entityBounds.getMinY() + entityBounds.getHeight() / 2;
+        double arrowStartX = arrow.startXProperty().get();
+        double arrowStartY = arrow.startYProperty().get();
+        double arrowEndX = arrow.endXProperty().get();
+        double arrowEndY = arrow.endYProperty().get();
 
-        // Approximate bound detection (with a small tolerance for floating-point inaccuracies)
-        double tolerance = 0.5; // Adjust if necessary
-
-        boolean isStartBound = arrow.startXProperty().isBound() && arrow.startYProperty().isBound() &&
-                Math.abs(arrow.startXProperty().get() - entityCenterX) < tolerance &&
-                Math.abs(arrow.startYProperty().get() - entityCenterY) < tolerance;
-
-        boolean isEndBound = arrow.endXProperty().isBound() && arrow.endYProperty().isBound() &&
-                Math.abs(arrow.endXProperty().get() - entityCenterX) < tolerance &&
-                Math.abs(arrow.endYProperty().get() - entityCenterY) < tolerance;
+        // Check if the start or end of the arrow is within the entity's bounds
+        boolean isStartBound = entityBounds.contains(arrowStartX, arrowStartY);
+        boolean isEndBound = entityBounds.contains(arrowEndX, arrowEndY);
 
         return isStartBound || isEndBound;
     }
+
 
 
     // Checks if both ends of an arrow are bound
