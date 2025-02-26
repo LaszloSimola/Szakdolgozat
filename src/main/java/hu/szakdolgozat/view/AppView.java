@@ -42,11 +42,11 @@ public class AppView extends Application {
     private double mouseDownX;
     private double mouseDownY;
     private boolean isConnectButtonVisible = false;
-    List<OwnLine> lines = new ArrayList<>();
+    private List<Arrow> arrows = new ArrayList<>();
     private List<Entity> entities;
     private List<Attribute> attributes;
     private List<Relation> relations;
-    private List<OwnLine> lines1;
+    private List<OwnLine> arrows1;
     private Pane root;
 
     private static final String LAST_USED_FOLDER = "lastUsedFolder";
@@ -140,13 +140,13 @@ public class AppView extends Application {
     }
 
     private List<OwnLine> getLinesFromRoot() {
-        List<OwnLine> lines = new ArrayList<>();
+        List<OwnLine> arrows = new ArrayList<>();
         for (Node node : root.getChildren()) {
             if (node instanceof OwnLine) {
-                lines.add((OwnLine) node);
+                arrows.add((OwnLine) node);
             }
         }
-        return lines;
+        return arrows;
     }
     private List<SpecializerRelation> getSpecializerRelationsFromRoot() {
         List<SpecializerRelation> relations = new ArrayList<>();
@@ -172,7 +172,7 @@ public class AppView extends Application {
         Button deleteButton = new Button("Delete");
         Button connectButton = new Button("Connect");
         Button specializerButton = new Button("Specializer");
-        //Button checkbutton = new Button("Check the lines");
+        //Button checkbutton = new Button("Check the arrows");
 
         //style for the buttons
         egyedButton.getStyleClass().add("action-button");
@@ -254,36 +254,24 @@ public class AppView extends Application {
         }
 
         deleteButton.setOnAction(e -> {
-            boolean bounded = false;
             if (selectedNode != null) {
-                if (selectedNode instanceof Line) {
-                    lines.remove(selectedNode);
-                    root.getChildren().remove(selectedNode);
-                    selectedNode = null;
-                } else if (selectedNode instanceof Draggable) {
-                    for (Node node : root.getChildren()) {
-                        if (node instanceof OwnLine) {
-                            OwnLine line = (OwnLine) node;
-                            if (LineChecker.isLineEndBoundToEntity(line, selectedNode)) {
-                                line.startXProperty().unbind();
-                                line.startYProperty().unbind();
-                            }
+                for (Node node : root.getChildren()) {
+                    if (node instanceof Arrow) {
+                        if (LineChecker.isArrowEndBoundToEntity((Arrow) node, selectedNode)) {
+                            System.out.println("connected");
                         }
                     }
-                    root.getChildren().remove(selectedNode);
-                    selectedNode = null;
+                }
 
-                    // if line is not connected to a node then it should be deleted, after an entity was deleted
-                    Iterator<OwnLine> iterator = lines.iterator();
-                    while (iterator.hasNext()) {
-                        Line line = iterator.next();
-                        if (LineChecker.isBothEndsBound(line)) {
-                            System.out.println("Both ends are bound.");
-                        } else {
-                            root.getChildren().remove(line);
-                            iterator.remove();
-                        }
-                    }
+                // Remove selected entity
+                root.getChildren().remove(selectedNode);
+                selectedNode = null;
+
+
+                // Debug output to verify
+                System.out.println("Remaining children in root:");
+                for (Node node : root.getChildren()) {
+                    System.out.println(node);
                 }
             }
         });
@@ -381,15 +369,33 @@ public class AppView extends Application {
                                     alert.setHeaderText("Invalid Connection");
                                     alert.showAndWait();
                                 }else{
-                                    controller.connectNodes(one, other, root, lines,true,true);
-                                    // a kapcsolodok hozzárendelése aa vonalhoz
-                                    for (int i = lines.size() - 1 ; i >= 0 ; i--) {
-
-                                        OwnLine lastLine = lines.get(lines.size() - 1);  // Get the last added line
-                                        lastLine.setStartNodeId(String.valueOf(one));            // Set start node ID
-                                        lastLine.setEndNodeId(String.valueOf(other));            // Set end node ID
-
+                                    String relationType = getConnectionType();
+                                    System.out.println(relationType);
+                                    boolean arrowAtEnd;
+                                    boolean arrowAtStart;
+                                    switch (relationType) {
+                                        case "1:N":
+                                            arrowAtStart = true;
+                                            arrowAtEnd = false;
+                                            break;
+                                        case "N:N":
+                                            arrowAtStart = false;
+                                            arrowAtEnd = false;
+                                            break;
+                                        case "1:1":
+                                            arrowAtEnd = true;
+                                            arrowAtStart = true;
+                                            break;
+                                        default:
+                                            arrowAtEnd = false;
+                                            arrowAtStart = false;
+                                            break;
                                     }
+
+                                    controller.connectNodes(one, other, root, arrows, arrowAtEnd, arrowAtStart);
+
+                                    Arrow lastLine = arrows.get(arrows.size() - 1);
+
                                     one = null;
                                     other = null;
                                     break;
@@ -529,7 +535,7 @@ public class AppView extends Application {
                     System.out.println("Connecting nodes for line from (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
                     line.setStartNodeId(String.valueOf(startNode));
                     line.setEndNodeId(String.valueOf(endNode));
-                    controller.connectNodes(startNode, endNode, root, lines,true,true);
+                    controller.connectNodes(startNode, endNode, root, arrows,true,true);
                 } else {
                     System.out.println("Failed to find matching nodes for line with coordinates: (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
                 }
@@ -588,8 +594,22 @@ public class AppView extends Application {
             }
         }
     }
+    private String getConnectionType() {
+        List<String> choices = Arrays.asList("1:1", "1:N","N:N");
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("1:1", choices);
+        dialog.setTitle("Choose Connection Type");
+        dialog.setHeaderText("Select how the nodes should be connected:");
+        dialog.setContentText("Choose:");
 
-
+        Optional<String> result = dialog.showAndWait();
+        return result.orElse("1:1"); // Ha nincs választás, alapértelmezett 1:1 kapcsolat
+    }
+    private void showWarning(String message, String title, String header) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, message);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.showAndWait();
+    }
     public static void main(String[] args) {
         launch();
     }

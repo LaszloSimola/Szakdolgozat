@@ -124,8 +124,8 @@ public class ApplicationController {
      * @param arrowAtEnd Whether to add an arrow at the end of the line.
      * @param arrowAtStart Whether to add an arrow at the start of the line.
      */
-    public void connectNodes(Node startNode, Node endNode, Pane root, List<OwnLine> lines, boolean arrowAtEnd, boolean arrowAtStart) {
-        OwnLine line = new OwnLine();
+    public void connectNodes(Node startNode, Node endNode, Pane root, List<Arrow> lines, boolean arrowAtEnd, boolean arrowAtStart) {
+        Arrow line = new Arrow();
 
         line.startXProperty().bind(Bindings.createDoubleBinding(() -> getEdgePoint(startNode, endNode)[0], startNode.boundsInParentProperty(), endNode.boundsInParentProperty()));
         line.startYProperty().bind(Bindings.createDoubleBinding(() -> getEdgePoint(startNode, endNode)[1], startNode.boundsInParentProperty(), endNode.boundsInParentProperty()));
@@ -136,22 +136,19 @@ public class ApplicationController {
         lines.add(line);
         line.toBack();
 
-        if (arrowAtEnd) {
-            Arrow arrowEnd = new Arrow();
-            arrowEnd.startXProperty().bind(line.endXProperty());
-            arrowEnd.startYProperty().bind(line.endYProperty());
-            arrowEnd.endXProperty().bind(line.startXProperty());
-            arrowEnd.endYProperty().bind(line.startYProperty());
-            root.getChildren().add(arrowEnd);
+        if (!arrowAtStart && arrowAtEnd) {
+            line.setArrowAtStart(true);
+            line.setArrowAtEnd(false);
         }
-
-        if (arrowAtStart) {
-            Arrow arrowStart = new Arrow();
-            arrowStart.startXProperty().bind(line.startXProperty());
-            arrowStart.startYProperty().bind(line.startYProperty());
-            arrowStart.endXProperty().bind(line.endXProperty());
-            arrowStart.endYProperty().bind(line.endYProperty());
-            root.getChildren().add(arrowStart);
+        else if (!arrowAtEnd && arrowAtStart) {
+            line.setArrowAtEnd(true);
+            line.setArrowAtStart(false);
+        }else if(arrowAtStart && arrowAtEnd) {
+            line.setArrowAtStart(true);
+            line.setArrowAtEnd(true);
+        }else{
+            line.setArrowAtStart(false);
+            line.setArrowAtEnd(false);
         }
     }
 
