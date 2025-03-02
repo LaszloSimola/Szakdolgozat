@@ -6,84 +6,64 @@ import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.Pane;
+
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The {@code ApplicationController} class manages interactions between UI components
- * and handles button clicks for creating entities, relationships, attributes, and connections.
- */
 public class ApplicationController {
+    // Fields
     private Node selectedNode;
-    private boolean entityClicked = false;
-    private boolean relationshipClicked = false;
-    private boolean attributeClicked = false;
-    private boolean connectClicked = false;
-    private boolean specializeClicked = false;
-    private Button activeButton = null;
+    private Button activeButton;
+    private List<Arrow> lines;
 
-    /**
-     * Handles the connection button click event.
-     * Toggles the connect mode and resets other modes.
-     */
+    // Mode flags
+    private boolean entityClicked;
+    private boolean relationshipClicked;
+    private boolean attributeClicked;
+    private boolean connectClicked;
+    private boolean specializeClicked;
+
+    // Constructor
+    public ApplicationController() {
+        this.lines = new ArrayList<>();
+        resetModes();
+    }
+
+    // Mode handling methods
     public void handleConnectButton() {
-        relationshipClicked = false;
-        attributeClicked = false;
-        entityClicked = false;
-        specializeClicked = false;
-        connectClicked = !connectClicked;
+        resetModes();
+        connectClicked = true;
     }
 
-    /**
-     * Handles the entity button click event.
-     * Activates entity creation mode and deactivates other modes.
-     */
     public void handleEntityButtonClick() {
-        relationshipClicked = false;
-        attributeClicked = false;
-        specializeClicked = false;
-        entityClicked = !entityClicked;
+        resetModes();
+        entityClicked = true;
     }
 
-    /**
-     * Handles the relationship button click event.
-     * Activates relationship creation mode and deactivates other modes.
-     */
     public void handleRelationButtonClick() {
-        entityClicked = false;
-        attributeClicked = false;
-        specializeClicked = false;
-        relationshipClicked = !relationshipClicked;
+        resetModes();
+        relationshipClicked = true;
     }
 
-    /**
-     * Handles the attribute button click event.
-     * Activates attribute creation mode and deactivates other modes.
-     */
     public void handleAttributeButtonClick() {
-        entityClicked = false;
-        relationshipClicked = false;
-        specializeClicked = false;
-        attributeClicked = !attributeClicked;
+        resetModes();
+        attributeClicked = true;
     }
 
-    /**
-     * Handles the specialization button click event.
-     * Activates specialization mode and deactivates other modes.
-     */
     public void handleSpecializeButtonClick() {
+        resetModes();
+        specializeClicked = true;
+    }
+
+    private void resetModes() {
         entityClicked = false;
         relationshipClicked = false;
         attributeClicked = false;
-        specializeClicked = !specializeClicked;
+        connectClicked = false;
+        specializeClicked = false;
     }
 
-    /**
-     * Toggles the styling of a button when clicked.
-     * Ensures only one button is styled as active at a time.
-     *
-     * @param button The button to toggle.
-     * @param styleClass The style class to apply.
-     */
+    // UI methods
     public void toggleButtonStyle(Button button, String styleClass) {
         if (activeButton == button) {
             button.getStyleClass().remove(styleClass);
@@ -97,68 +77,56 @@ public class ApplicationController {
         }
     }
 
-    // Getters and Setters
-
-    public boolean isEntityClicked() { return entityClicked; }
-    public void setEntityClicked(boolean entityClicked) { this.entityClicked = entityClicked; }
-
-    public boolean isRelationshipClicked() { return relationshipClicked; }
-    public void setRelationshipClicked(boolean relationshipClicked) { this.relationshipClicked = relationshipClicked; }
-
-    public boolean isAttributeClicked() { return attributeClicked; }
-    public void setAttributeClicked(boolean attributeClicked) { this.attributeClicked = attributeClicked; }
-
-    public boolean isConnectClicked() { return connectClicked; }
-    public void setConnectClicked(boolean connectClicked) { this.connectClicked = connectClicked; }
-
-    public boolean isSpecializeClicked() { return specializeClicked; }
-    public void setSpecializeClicked(boolean specializeClicked) { this.specializeClicked = specializeClicked; }
-
-    /**
-     * Connects two nodes with a line and optionally adds arrowheads at the ends.
-     *
-     * @param startNode The starting node.
-     * @param endNode The ending node.
-     * @param root The pane to which the line is added.
-     * @param lines The list of existing lines.
-     * @param arrowAtEnd Whether to add an arrow at the end of the line.
-     * @param arrowAtStart Whether to add an arrow at the start of the line.
-     */
+    // Connection methods
     public void connectNodes(Node startNode, Node endNode, Pane root, List<Arrow> lines, boolean arrowAtEnd, boolean arrowAtStart) {
-        Arrow line = new Arrow();
+        Arrow line = createArrow(startNode, endNode);
+        configureArrow(line, arrowAtEnd, arrowAtStart);
+        addArrowToScene(line, root, lines);
+    }
 
+    private Arrow createArrow(Node startNode, Node endNode) {
+        Arrow line = new Arrow();
+        bindArrowProperties(line, startNode, endNode);
+        return line;
+    }
+
+    private void bindArrowProperties(Arrow line, Node startNode, Node endNode) {
         line.startXProperty().bind(Bindings.createDoubleBinding(() -> getEdgePoint(startNode, endNode)[0], startNode.boundsInParentProperty(), endNode.boundsInParentProperty()));
         line.startYProperty().bind(Bindings.createDoubleBinding(() -> getEdgePoint(startNode, endNode)[1], startNode.boundsInParentProperty(), endNode.boundsInParentProperty()));
         line.endXProperty().bind(Bindings.createDoubleBinding(() -> getEdgePoint(endNode, startNode)[0], startNode.boundsInParentProperty(), endNode.boundsInParentProperty()));
         line.endYProperty().bind(Bindings.createDoubleBinding(() -> getEdgePoint(endNode, startNode)[1], startNode.boundsInParentProperty(), endNode.boundsInParentProperty()));
-
-        root.getChildren().add(line);
-        lines.add(line);
-        line.toBack();
-
-        if (!arrowAtStart && arrowAtEnd) {
-            line.setArrowAtStart(true);
-            line.setArrowAtEnd(false);
-        }
-        else if (!arrowAtEnd && arrowAtStart) {
-            line.setArrowAtEnd(true);
-            line.setArrowAtStart(false);
-        }else if(arrowAtStart && arrowAtEnd) {
-            line.setArrowAtStart(true);
-            line.setArrowAtEnd(true);
-        }else{
-            line.setArrowAtStart(false);
-            line.setArrowAtEnd(false);
-        }
     }
 
-    /**
-     * Computes the connection point between two nodes.
-     *
-     * @param from The starting node.
-     * @param to The target node.
-     * @return An array containing the x and y coordinates of the edge point.
-     */
+    private void configureArrow(Arrow line, boolean arrowAtEnd, boolean arrowAtStart) {
+        line.setArrowAtStart(arrowAtStart);
+        line.setArrowAtEnd(arrowAtEnd);
+    }
+
+    private void addArrowToScene(Arrow line, Pane root, List<Arrow> lines) {
+        root.getChildren().add(line);
+        lines.add(line);
+        this.lines.add(line);
+        line.toBack();
+    }
+
+    public boolean areNodesConnected(Node node1, Node node2,List<Arrow> lines) {
+        for (Arrow arrow : lines) {
+            if (isArrowConnectingNodes(arrow, node1, node2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isArrowConnectingNodes(Arrow arrow, Node node1, Node node2) {
+        double[] point1 = getEdgePoint(node1, node2);
+        double[] point2 = getEdgePoint(node2, node1);
+        return (arrow.getStartX() == point1[0] && arrow.getStartY() == point1[1] &&
+                arrow.getEndX() == point2[0] && arrow.getEndY() == point2[1]) ||
+                (arrow.getStartX() == point2[0] && arrow.getStartY() == point2[1] &&
+                        arrow.getEndX() == point1[0] && arrow.getEndY() == point1[1]);
+    }
+
     private double[] getEdgePoint(Node from, Node to) {
         Bounds fromBounds = from.getBoundsInParent();
         Bounds toBounds = to.getBoundsInParent();
@@ -176,5 +144,71 @@ public class ApplicationController {
         double edgeY = centerY + (fromBounds.getHeight() / 2) * Math.sin(angle);
 
         return new double[]{edgeX, edgeY};
+    }
+
+    // Getters and Setters
+
+    public Node getSelectedNode() {
+        return selectedNode;
+    }
+
+    public void setSelectedNode(Node selectedNode) {
+        this.selectedNode = selectedNode;
+    }
+
+    public Button getActiveButton() {
+        return activeButton;
+    }
+
+    public void setActiveButton(Button activeButton) {
+        this.activeButton = activeButton;
+    }
+
+    public List<Arrow> getLines() {
+        return lines;
+    }
+
+    public void setLines(List<Arrow> lines) {
+        this.lines = lines;
+    }
+
+    public boolean isEntityClicked() {
+        return entityClicked;
+    }
+
+    public void setEntityClicked(boolean entityClicked) {
+        this.entityClicked = entityClicked;
+    }
+
+    public boolean isRelationshipClicked() {
+        return relationshipClicked;
+    }
+
+    public void setRelationshipClicked(boolean relationshipClicked) {
+        this.relationshipClicked = relationshipClicked;
+    }
+
+    public boolean isAttributeClicked() {
+        return attributeClicked;
+    }
+
+    public void setAttributeClicked(boolean attributeClicked) {
+        this.attributeClicked = attributeClicked;
+    }
+
+    public boolean isConnectClicked() {
+        return connectClicked;
+    }
+
+    public void setConnectClicked(boolean connectClicked) {
+        this.connectClicked = connectClicked;
+    }
+
+    public boolean isSpecializeClicked() {
+        return specializeClicked;
+    }
+
+    public void setSpecializeClicked(boolean specializeClicked) {
+        this.specializeClicked = specializeClicked;
     }
 }

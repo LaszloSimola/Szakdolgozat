@@ -13,7 +13,7 @@ public class AppState {
     private List<Entity.EntityDTO> entities;
     private List<Attribute.AttributeDTO> attributes;
     private List<Relation.RelationDTO> relations;
-    private List<OwnLine.OwnLineDTO> connections;
+    private List<Arrow.ArrowDTO> connections;
     private List<SpecializerRelation.SpecializerDTO> specializerRelations;
 
     @JsonIgnore
@@ -102,22 +102,22 @@ public class AppState {
     }
 
     // OwnLines
-    public List<OwnLine.OwnLineDTO> getConnections() {
+    public List<Arrow.ArrowDTO> getConnections() {
         return connections;
     }
 
-    public void setConnections(List<OwnLine.OwnLineDTO> connectionDTOs) {
+    public void setConnections(List<Arrow.ArrowDTO> connectionDTOs) {
         this.connections = connectionDTOs;
     }
 
     @JsonIgnore
-    public void setConnectionObjects(List<OwnLine> connections) {
-        this.connections = connections.stream().map(OwnLine::toDTO).collect(Collectors.toList());
+    public void setConnectionObjects(List<Arrow> connections) {
+        this.connections = connections.stream().map(Arrow::toDTO).collect(Collectors.toList());
     }
 
     @JsonIgnore
-    public List<OwnLine> getConnectionObjects() {
-        return connections.stream().map(OwnLine::fromDTO).collect(Collectors.toList());
+    public List<Arrow> getConnectionObjects() {
+        return connections.stream().map(Arrow::fromDTO).collect(Collectors.toList());
     }
 }
 

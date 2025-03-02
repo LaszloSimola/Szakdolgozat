@@ -1,5 +1,6 @@
 package hu.szakdolgozat.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
@@ -180,4 +181,106 @@ public class Arrow extends Group implements Draggable {
     public void drag(double deltaX, double deltaY) {
 
     }
+
+    // DTO class for Arrow
+    public static class ArrowDTO {
+
+        private double startX;
+        private double startY;
+        private double endX;
+        private double endY;
+        private boolean isArrowAtStartVisible; // Visibility of start arrows
+        private boolean isArrowAtEndVisible;   // Visibility of end arrows
+
+        public ArrowDTO(@JsonProperty("startX") double startX,
+                        @JsonProperty("startY") double startY,
+                        @JsonProperty("endX") double endX,
+                        @JsonProperty("endY") double endY,
+                        @JsonProperty("isArrowAtStartVisible") boolean isArrowAtStartVisible,
+                        @JsonProperty("isArrowAtEndVisible") boolean isArrowAtEndVisible) {
+            this.startX = startX;
+            this.startY = startY;
+            this.endX = endX;
+            this.endY = endY;
+            this.isArrowAtStartVisible = isArrowAtStartVisible;
+            this.isArrowAtEndVisible = isArrowAtEndVisible;
+        }
+
+        public double getStartX() {
+            return startX;
+        }
+
+        public void setStartX(double startX) {
+            this.startX = startX;
+        }
+
+        public double getStartY() {
+            return startY;
+        }
+
+        public void setStartY(double startY) {
+            this.startY = startY;
+        }
+
+        public double getEndX() {
+            return endX;
+        }
+
+        public void setEndX(double endX) {
+            this.endX = endX;
+        }
+
+        public double getEndY() {
+            return endY;
+        }
+
+        public void setEndY(double endY) {
+            this.endY = endY;
+        }
+
+        public boolean isArrowAtStartVisible() {
+            return isArrowAtStartVisible;
+        }
+
+        public void setArrowAtStartVisible(boolean visible) {
+            isArrowAtStartVisible = visible;
+        }
+
+        public boolean isArrowAtEndVisible() {
+            return isArrowAtEndVisible;
+        }
+
+        public void setArrowAtEndVisible(boolean visible) {
+            isArrowAtEndVisible = visible;
+        }
+    }
+
+    // Convert Arrow to DTO
+    public ArrowDTO toDTO() {
+        return new ArrowDTO(
+                getStartX(),
+                getStartY(),
+                getEndX(),
+                getEndY(),
+                arrow3.isVisible(), // Check visibility of arrows at the start
+                arrow1.isVisible()  // Check visibility of arrows at the end
+        );
+    }
+
+    public static Arrow fromDTO(ArrowDTO dto) {
+        Arrow arrow = new Arrow();
+        arrow.setStartX(dto.getStartX());
+        arrow.setStartY(dto.getStartY());
+        arrow.setEndX(dto.getEndX());
+        arrow.setEndY(dto.getEndY());
+
+        // Restore visibility of arrows based on DTO values
+        arrow.setArrowAtStart(dto.isArrowAtStartVisible());
+        arrow.setArrowAtEnd(dto.isArrowAtEndVisible());
+
+        return arrow;
+    }
+
 }
+
+

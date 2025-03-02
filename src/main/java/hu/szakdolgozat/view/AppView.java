@@ -1,12 +1,10 @@
 package hu.szakdolgozat.view;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import hu.szakdolgozat.controller.ApplicationController;
 import hu.szakdolgozat.model.*;
 import javafx.application.Application;
-import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.*;
@@ -19,34 +17,18 @@ import javafx.stage.Stage;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.prefs.Preferences;
 
-/*
-* meghatározo kapcsolat duplavonalas rombusz
-* kisebb es normalisan mukdodo speializalo kapcsolat
-* automazicio erteistes a usernek
-* visszatoltes
-* nyil megvalositasa az entitas fele
-* kulcsjeloles
-* */
-
 public class AppView extends Application {
     private final ApplicationController controller = new ApplicationController();
     private Node selectedNode;
     private Node one, other;
-    private Node startNode, endNode;
     private double mouseDownX;
     private double mouseDownY;
-    private boolean isConnectButtonVisible = false;
     private List<Arrow> arrows = new ArrayList<>();
-    private List<Entity> entities;
-    private List<Attribute> attributes;
-    private List<Relation> relations;
-    private List<OwnLine> arrows1;
     private Pane root;
 
     private static final String LAST_USED_FOLDER = "lastUsedFolder";
@@ -74,7 +56,7 @@ public class AppView extends Application {
                 state.setEntityObjects(getEntitiesFromRoot());
                 state.setAttributeObjects(getAttributesFromRoot());
                 state.setRelationObjects(getRelationsFromRoot());
-                state.setConnectionObjects(getLinesFromRoot());
+                state.setConnectionObjects(getArrowsFromRoot());
                 state.setSpecializerObjects(getSpecializerRelationsFromRoot());
 
                 StateManager.saveState(state, file.getPath());
@@ -139,15 +121,16 @@ public class AppView extends Application {
         return relations;
     }
 
-    private List<OwnLine> getLinesFromRoot() {
-        List<OwnLine> arrows = new ArrayList<>();
+    private List<Arrow> getArrowsFromRoot() {
+        List<Arrow> arrows = new ArrayList<>();
         for (Node node : root.getChildren()) {
-            if (node instanceof OwnLine) {
-                arrows.add((OwnLine) node);
+            if (node instanceof Arrow) {
+                arrows.add((Arrow) node);
             }
         }
         return arrows;
     }
+
     private List<SpecializerRelation> getSpecializerRelationsFromRoot() {
         List<SpecializerRelation> relations = new ArrayList<>();
         for (Node node : root.getChildren()) {
@@ -157,9 +140,6 @@ public class AppView extends Application {
         }
         return relations;
     }
-
-
-
 
 
     @Override
@@ -172,7 +152,6 @@ public class AppView extends Application {
         Button deleteButton = new Button("Delete");
         Button connectButton = new Button("Connect");
         Button specializerButton = new Button("Specializer");
-        //Button checkbutton = new Button("Check the arrows");
 
         //style for the buttons
         egyedButton.getStyleClass().add("action-button");
@@ -181,8 +160,6 @@ public class AppView extends Application {
         connectButton.getStyleClass().add("connect-button");
         deleteButton.getStyleClass().add("delete-button");
         specializerButton.getStyleClass().add("action-button");
-
-        //checkbutton.getStyleClass().add("action-button");
 
         // Event handlers for buttons
         egyedButton.setOnAction(e -> {
@@ -212,7 +189,7 @@ public class AppView extends Application {
 
         // Vbox for the buttons
         VBox buttonPanel = new VBox(10);
-        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton,specializerButton, deleteButton, connectButton);
+        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton, specializerButton, deleteButton, connectButton);
         buttonPanel.setPadding(new Insets(7));
 
         //style for the buttonpanel
@@ -239,7 +216,7 @@ public class AppView extends Application {
         MenuItem savePngMenuItem = new MenuItem("Save as PNG");
         savePngMenuItem.setOnAction(e -> saveRootAsPng(stage));
 
-        fileMenu.getItems().addAll(saveMenuItem, loadMenuItem,savePngMenuItem);
+        fileMenu.getItems().addAll(saveMenuItem, loadMenuItem, savePngMenuItem);
         menuBar.getMenus().add(fileMenu);
 
         borderPane.setTop(menuBar);
@@ -283,7 +260,6 @@ public class AppView extends Application {
         });
 
 
-
         root.setOnMousePressed(event -> {
             mouseDownX = event.getX();
             mouseDownY = event.getY();
@@ -304,7 +280,7 @@ public class AppView extends Application {
                 // Create a new entity
                 double entityWidth = 100;
                 double entityHeight = 50;
-                Entity entity = new Entity(clickX - entityWidth / 2, clickY - entityHeight / 2, entityWidth, entityHeight,false);
+                Entity entity = new Entity(clickX - entityWidth / 2, clickY - entityHeight / 2, entityWidth, entityHeight, false);
                 root.getChildren().add(entity);
                 System.out.println("entity positons: " + entity.getPosX() + " " + entity.getPosY());
                 entity.setSelected(true);
@@ -320,9 +296,9 @@ public class AppView extends Application {
                 controller.setEntityClicked(false);
                 controller.toggleButtonStyle(egyedButton, "action-button-clicked");
             } else if (controller.isAttributeClicked()) {
-                Attribute attribute = new Attribute(clickX , clickY,25,55);
+                Attribute attribute = new Attribute(clickX, clickY, 25, 55);
                 root.getChildren().add(attribute);
-                System.out.println( "attrubite coordinates: " + attribute.getPosX() + " " + attribute.getPosY());
+                System.out.println("attrubite coordinates: " + attribute.getPosX() + " " + attribute.getPosY());
                 attribute.setSelected(true);
                 selectedNode = attribute;
                 // Deselect all other nodes
@@ -334,7 +310,7 @@ public class AppView extends Application {
                 }
                 controller.setAttributeClicked(false);
                 controller.toggleButtonStyle(attributumButton, "action-button-clicked");
-            }else if (controller.isRelationshipClicked()) {
+            } else if (controller.isRelationshipClicked()) {
                 double size = 70;
                 double[] points = {
                         0, -size / 2,       // Top point relative to center
@@ -360,8 +336,7 @@ public class AppView extends Application {
                 }
                 controller.setRelationshipClicked(false);
                 controller.toggleButtonStyle(kapcsolatButton, "action-button-clicked");
-            }
-            else if (controller.isConnectClicked()) {
+            } else if (controller.isConnectClicked()) {
                 for (Node node : root.getChildren()) {
                     if (!(node instanceof Line)) {
                         if (node.contains(clickX, clickY)) {
@@ -370,38 +345,53 @@ public class AppView extends Application {
                                 break;
                             } else if (one != node) {
                                 other = node;
+                                if (controller.areNodesConnected(one, other,arrows)) {
+                                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                                    alert.setTitle("Connection Exists");
+                                    alert.setHeaderText("Nodes Already Connected");
+                                    alert.setContentText("These nodes are already connected.");
+                                    alert.showAndWait();
+                                    one = null;
+                                    other = null;
+                                    break;
+                                }
                                 if (one instanceof Entity && other instanceof Entity) {
-                                    Alert alert = new Alert(Alert.AlertType.WARNING,"Entity can not be connected to Entity!");
+                                    Alert alert = new Alert(Alert.AlertType.WARNING, "Entity can not be connected to Entity!");
                                     alert.setTitle("Connection failed");
                                     alert.setHeaderText("Invalid Connection");
                                     alert.showAndWait();
-                                }else{
+                                } else if(one instanceof Relation && other instanceof Entity || one instanceof Entity && other instanceof Relation) {
                                     String relationType = getConnectionType();
-                                    System.out.println(relationType);
                                     boolean arrowAtEnd;
                                     boolean arrowAtStart;
                                     switch (relationType) {
-                                        case "1:N":
-                                            arrowAtStart = true;
-                                            arrowAtEnd = false;
+                                        case "Arrow":
+                                            if (one instanceof Entity && other instanceof Relation) {
+                                                arrowAtStart = true;
+                                                arrowAtEnd = false;
+                                            }else{
+                                                arrowAtStart = false;
+                                                arrowAtEnd = true;
+                                            }
                                             break;
-                                        case "N:N":
+                                        case "Line":
                                             arrowAtStart = false;
                                             arrowAtEnd = false;
-                                            break;
-                                        case "1:1":
-                                            arrowAtEnd = true;
-                                            arrowAtStart = true;
                                             break;
                                         default:
                                             arrowAtEnd = false;
                                             arrowAtStart = false;
                                             break;
                                     }
+                                    if (!relationType.isEmpty()){
+                                        controller.connectNodes(one, other, root, arrows, arrowAtEnd, arrowAtStart);
+                                    }
 
-                                    controller.connectNodes(one, other, root, arrows, arrowAtEnd, arrowAtStart);
-
-                                    Arrow lastLine = arrows.get(arrows.size() - 1);
+                                    one = null;
+                                    other = null;
+                                    break;
+                                } else{
+                                    controller.connectNodes(one, other, root, arrows, false, false);
 
                                     one = null;
                                     other = null;
@@ -412,7 +402,7 @@ public class AppView extends Application {
                     }
                 }
             } else if (controller.isSpecializeClicked()) {
-                SpecializerRelation specializerRelation = new SpecializerRelation(clickX-30 ,clickY-30);
+                SpecializerRelation specializerRelation = new SpecializerRelation(clickX - 30, clickY - 30);
                 root.getChildren().add(specializerRelation);
                 selectedNode = specializerRelation;
                 // Deselect all other nodes
@@ -437,7 +427,7 @@ public class AppView extends Application {
                                     } else if (node instanceof Attribute) {
                                         new AttributeModify((Attribute) node);
                                     } else if (node instanceof Relation) {
-                                        new RelationModify((Relation)node);
+                                        new RelationModify((Relation) node);
                                     }
                                 }
                             });
@@ -502,57 +492,131 @@ public class AppView extends Application {
                 fileChooser.setInitialDirectory(lastUsedFolder);
             }
         }
+
         File file = fileChooser.showOpenDialog(stage);
+        if (file == null) return; // User canceled
+
         try {
             // Load AppState from JSON file
             AppState appState = StateManager.loadState(file.getPath());
             root.getChildren().clear();
 
-            // First, add all non-line nodes
+            // First, add all non-arrow nodes
             for (Node node : appState.getAllNodes()) {
-                    root.getChildren().add(node);
+                root.getChildren().add(node);
             }
-            for (OwnLine line : appState.getConnectionObjects()) {
-                Node startNode = null;
-                Node endNode = null;
 
-                // Find the start node
-                for (Node node : root.getChildren()) {
-                    if (!(node instanceof OwnLine)) {
-                        Bounds bounds = node.getBoundsInParent(); // Get visual bounds
-                        if (bounds.contains(line.getStartX() - 30, line.getStartY() - 30)) {
-                            startNode = node;
-                            break; // Found the start node, exit this loop
-                        }
-                    }
-                }
+            // Now, process the arrows
+            for (Arrow arrow : appState.getConnectionObjects()) {
+                Node startNode = findClosestNode(arrow.getStartX(), arrow.getStartY());
+                Node endNode = findClosestNode(arrow.getEndX(), arrow.getEndY());
 
-                // Find the end node
-                for (Node node : root.getChildren()) {
-                    if (!(node instanceof OwnLine)) {
-                        Bounds bounds = node.getBoundsInParent(); // Get visual bounds
-                        if (bounds.contains(line.getEndX() - 30, line.getEndY() - 30)) {
-                            endNode = node;
-                            break; // Found the end node, exit this loop
-                        }
-                    }
-                }
-                // Bind the identified nodes to the line
                 if (startNode != null && endNode != null) {
-                    System.out.println("Connecting nodes for line from (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
-                    line.setStartNodeId(String.valueOf(startNode));
-                    line.setEndNodeId(String.valueOf(endNode));
-                    controller.connectNodes(startNode, endNode, root, arrows,true,true);
+                    System.out.println("✅ Connecting nodes for restored arrow from ("
+                            + arrow.getStartX() + ", " + arrow.getStartY() + ") to ("
+                            + arrow.getEndX() + ", " + arrow.getEndY() + ")");
+
+                    // Ensure arrow properties are restored
+                    boolean isArrowAtStartVisible = arrow.toDTO().isArrowAtStartVisible();
+                    boolean isArrowAtEndVisible = arrow.toDTO().isArrowAtEndVisible();
+
+                    // Call connectNodes (this will automatically add the arrow)
+                    controller.connectNodes(startNode, endNode, root, arrows, isArrowAtEndVisible, isArrowAtStartVisible);
                 } else {
-                    System.out.println("Failed to find matching nodes for line with coordinates: (" + line.getStartX() + ", " + line.getStartY() + ") to (" + line.getEndX() + ", " + line.getEndY() + ")");
+                    System.out.println("⚠️ Warning: Could not find valid start or end nodes for arrow at ("
+                            + arrow.getStartX() + ", " + arrow.getStartY() + ") to ("
+                            + arrow.getEndX() + ", " + arrow.getEndY() + ")");
                 }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
+
+
+    private Node findClosestNode(double x, double y) {
+        Node closestNode = null;
+        double minDistance = Double.MAX_VALUE;
+        final double BASE_SEARCH_RADIUS = 30.0; // Start with 30 pixels
+
+        for (Node node : root.getChildren()) {
+            if (node instanceof Arrow) continue; // Skip arrows
+
+            // Get node bounds in parent coordinates
+            Bounds bounds = node.getBoundsInParent();
+            double centerX = bounds.getMinX() + bounds.getWidth() / 2;
+            double centerY = bounds.getMinY() + bounds.getHeight() / 2;
+
+            // Adjust search radius dynamically based on node size
+            double searchRadius = Math.max(BASE_SEARCH_RADIUS, Math.max(bounds.getWidth(), bounds.getHeight()) * 0.5);
+
+            // Create an expanded bounding box
+            Bounds expandedBounds = new BoundingBox(
+                    bounds.getMinX() - searchRadius,
+                    bounds.getMinY() - searchRadius,
+                    bounds.getWidth() + 2 * searchRadius,
+                    bounds.getHeight() + 2 * searchRadius
+            );
+
+            // Check if (x, y) is within the expanded bounds
+            if (expandedBounds.contains(x, y)) {
+                double distance = Math.hypot(centerX - x, centerY - y);
+                if (distance < minDistance) {
+                    closestNode = node;
+                    minDistance = distance;
+                }
+            }
+        }
+
+        if (closestNode == null) {
+            System.out.println("⚠️ No node found near (" + x + ", " + y + ") -- Expanding search radius!");
+            // Try again with a larger search radius
+            return retryFindClosestNode(x, y, BASE_SEARCH_RADIUS * 2);
+        } else {
+            System.out.println("✅ Closest node found at (" + closestNode.getLayoutX() + ", " + closestNode.getLayoutY() + ")");
+        }
+
+        return closestNode;
+    }
+
+    private Node retryFindClosestNode(double x, double y, double searchRadius) {
+        Node closestNode = null;
+        double minDistance = Double.MAX_VALUE;
+
+        for (Node node : root.getChildren()) {
+            if (node instanceof Arrow) continue; // Skip arrows
+
+            Bounds bounds = node.getBoundsInParent();
+            double centerX = bounds.getMinX() + bounds.getWidth() / 2;
+            double centerY = bounds.getMinY() + bounds.getHeight() / 2;
+
+            Bounds expandedBounds = new BoundingBox(
+                    bounds.getMinX() - searchRadius,
+                    bounds.getMinY() - searchRadius,
+                    bounds.getWidth() + 2 * searchRadius,
+                    bounds.getHeight() + 2 * searchRadius
+            );
+
+            if (expandedBounds.contains(x, y)) {
+                double distance = Math.hypot(centerX - x, centerY - y);
+                if (distance < minDistance) {
+                    closestNode = node;
+                    minDistance = distance;
+                }
+            }
+        }
+
+        if (closestNode == null) {
+            System.out.println("❌ No node found even after retry with " + searchRadius + "px radius.");
+        } else {
+            System.out.println("🔄 Retry success! Closest node found at (" + closestNode.getLayoutX() + ", " + closestNode.getLayoutY() + ")");
+        }
+
+        return closestNode;
+    }
+
+
+
     private void saveRootAsPng(Stage stage) {
         Preferences prefs = Preferences.userNodeForPackage(AppView.class);
         FileChooser fileChooser = new FileChooser();
@@ -602,15 +666,20 @@ public class AppView extends Application {
         }
     }
     private String getConnectionType() {
-        List<String> choices = Arrays.asList("1:1", "1:N","N:N");
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("1:1", choices);
+        // Updated choices to only include "Arrow" and "Line"
+        List<String> choices = Arrays.asList("Arrow", "Line");
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("Line", choices); // Default is "Line"
         dialog.setTitle("Choose Connection Type");
         dialog.setHeaderText("Select how the nodes should be connected:");
-        dialog.setContentText("Choose:");
+        dialog.setContentText("(The arrow will face in the order of the click)");
 
         Optional<String> result = dialog.showAndWait();
-        return result.orElse("1:1"); // Ha nincs választás, alapértelmezett 1:1 kapcsolat
+
+        // Return null if the user cancels, otherwise return the selected value
+        return result.orElse("");
     }
+
+
     private void showWarning(String message, String title, String header) {
         Alert alert = new Alert(Alert.AlertType.WARNING, message);
         alert.setTitle(title);
