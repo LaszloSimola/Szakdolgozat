@@ -631,14 +631,20 @@ public class AppView extends Application {
         File file = fileChooser.showSaveDialog(stage);
         if (file != null) {
             try {
-                // Create a WritableImage to capture the root pane
+                // Save the old style
+                String oldStyle = root.getStyle();
+
+                // Set plain white background
+                root.setStyle("-fx-background-color: white;");
+
+
                 WritableImage image = new WritableImage((int) root.getWidth(), (int) root.getHeight());
                 SnapshotParameters snapshotParameters = new SnapshotParameters();
-
-                // Take snapshot
+                // Take snapshot with white background
                 root.snapshot(snapshotParameters, image);
 
-                // Write the image to the selected file
+                // Restore the old style
+                root.setStyle(oldStyle);
 
                 BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
                 ImageIO.write(bufferedImage, "png", file);
@@ -650,7 +656,6 @@ public class AppView extends Application {
                 successAlert.setContentText("Image saved successfully to " + file.getPath());
                 successAlert.showAndWait();
             } catch (IOException e) {
-                // Display error alert
                 Alert errorAlert = new Alert(Alert.AlertType.ERROR);
                 errorAlert.setTitle("Save Failed");
                 errorAlert.setHeaderText("An error occurred while saving the image.");
@@ -660,6 +665,7 @@ public class AppView extends Application {
             }
         }
     }
+
     private String getConnectionType() {
         // Updated choices to only include "Arrow" and "Line"
         List<String> choices = Arrays.asList("Arrow", "Line");
