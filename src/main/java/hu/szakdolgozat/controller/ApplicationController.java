@@ -29,30 +29,42 @@ public class ApplicationController {
         resetModes();
     }
 
-    // Mode handling methods
-    public void handleConnectButton() {
-        resetModes();
-        connectClicked = true;
-    }
+    public void handleToggleMode(Button button, String activeStyleClass) {
+        if (activeButton == button) {
+            // Deactivate the button if it's already active
+            button.getStyleClass().remove(activeStyleClass);
+            activeButton = null;
+            resetModes(); // Reset all mode flags
+        } else {
+            // Deactivate the previously active button, if any
+            if (activeButton != null) {
+                activeButton.getStyleClass().remove(activeButton.getStyleClass() + "-clicked");
+            }
 
-    public void handleEntityButtonClick() {
-        resetModes();
-        entityClicked = true;
-    }
+            // Activate the clicked button
+            button.getStyleClass().add(activeStyleClass);
+            activeButton = button;
 
-    public void handleRelationButtonClick() {
-        resetModes();
-        relationshipClicked = true;
-    }
-
-    public void handleAttributeButtonClick() {
-        resetModes();
-        attributeClicked = true;
-    }
-
-    public void handleSpecializeButtonClick() {
-        resetModes();
-        specializeClicked = true;
+            // Reset all modes and activate the corresponding mode
+            resetModes();
+            switch (activeStyleClass) {
+                case "connect-button-clicked":
+                    connectClicked = true;
+                    break;
+                case "entity-button-clicked":
+                    entityClicked = true;
+                    break;
+                case "relationship-button-clicked":
+                    relationshipClicked = true;
+                    break;
+                case "attribute-button-clicked":
+                    attributeClicked = true;
+                    break;
+                case "specialize-button-clicked":
+                    specializeClicked = true;
+                    break;
+            }
+        }
     }
 
     private void resetModes() {

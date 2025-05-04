@@ -79,11 +79,18 @@
     }
 
     /* Clicked button state */
-    .action-button-clicked {
+    .entity-button-clicked {
         -fx-background-color: #0d8a3f !important; /* Dark Green */
     }
-
-
+    .relationship-button-clicked {
+        -fx-background-color: #0d8a3f !important; /* Dark Green */
+    }
+    .attribute-button-clicked {
+        -fx-background-color: #0d8a3f !important; /* Dark Green */
+    }
+    .specialize-button-clicked {
+        -fx-background-color: #0d8a3f !important; /* Dark Green */
+    }
 
 
 

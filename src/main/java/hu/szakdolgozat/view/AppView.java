@@ -146,50 +146,45 @@ public class AppView extends Application {
     public void start(Stage stage) {
 
         // buttons
-        Button egyedButton = new Button("Entity");
-        Button kapcsolatButton = new Button("Relationship");
-        Button attributumButton = new Button("Attribute");
+        Button entityButton = new Button("Entity");
+        Button relationButton = new Button("Relationship");
+        Button attributeButton = new Button("Attribute");
         Button deleteButton = new Button("Delete");
         Button connectButton = new Button("Connect");
-        Button specializerButton = new Button("Specializer");
+        Button specializeButton = new Button("Specializer");
 
         //style for the buttons
-        egyedButton.getStyleClass().add("action-button");
-        kapcsolatButton.getStyleClass().add("action-button");
-        attributumButton.getStyleClass().add("action-button");
+        entityButton.getStyleClass().add("action-button");
+        relationButton.getStyleClass().add("action-button");
+        attributeButton.getStyleClass().add("action-button");
         connectButton.getStyleClass().add("connect-button");
         deleteButton.getStyleClass().add("delete-button");
-        specializerButton.getStyleClass().add("action-button");
+        specializeButton.getStyleClass().add("action-button");
 
-        // Event handlers for buttons
-        egyedButton.setOnAction(e -> {
-            controller.handleEntityButtonClick();
-            controller.toggleButtonStyle(egyedButton, "action-button-clicked");
+        connectButton.setOnAction(event -> {
+            controller.handleToggleMode(connectButton, "connect-button-clicked");
         });
 
-        kapcsolatButton.setOnAction(e -> {
-            controller.handleRelationButtonClick();
-            controller.toggleButtonStyle(kapcsolatButton, "action-button-clicked");
+        entityButton.setOnAction(event -> {
+            controller.handleToggleMode(entityButton, "entity-button-clicked");
         });
 
-        attributumButton.setOnAction(e -> {
-            controller.handleAttributeButtonClick();
-            controller.toggleButtonStyle(attributumButton, "action-button-clicked");
+        relationButton.setOnAction(event -> {
+            controller.handleToggleMode(relationButton, "relationship-button-clicked");
         });
 
-        specializerButton.setOnAction(e -> {
-            controller.handleSpecializeButtonClick();
-            controller.toggleButtonStyle(specializerButton, "action-button-clicked");
+        attributeButton.setOnAction(event -> {
+            controller.handleToggleMode(attributeButton, "attribute-button-clicked");
         });
 
-        connectButton.setOnAction(e -> {
-            controller.handleConnectButton();
-            controller.toggleButtonStyle(connectButton, "connect-button-clicked");
+        specializeButton.setOnAction(event -> {
+            controller.handleToggleMode(specializeButton, "specialize-button-clicked");
         });
+
 
         // Vbox for the buttons
         VBox buttonPanel = new VBox(10);
-        buttonPanel.getChildren().addAll(egyedButton, kapcsolatButton, attributumButton, specializerButton, deleteButton, connectButton);
+        buttonPanel.getChildren().addAll(entityButton, relationButton, attributeButton, specializeButton, deleteButton, connectButton);
         buttonPanel.setPadding(new Insets(7));
 
         //style for the buttonpanel
@@ -294,7 +289,7 @@ public class AppView extends Application {
                     }
                 }
                 controller.setEntityClicked(false);
-                controller.toggleButtonStyle(egyedButton, "action-button-clicked");
+                controller.toggleButtonStyle(entityButton, "entity-button-clicked");
             } else if (controller.isAttributeClicked()) {
                 Attribute attribute = new Attribute(clickX, clickY, 25, 55);
                 root.getChildren().add(attribute);
@@ -309,7 +304,7 @@ public class AppView extends Application {
                     }
                 }
                 controller.setAttributeClicked(false);
-                controller.toggleButtonStyle(attributumButton, "action-button-clicked");
+                controller.toggleButtonStyle(attributeButton, "attribute-button-clicked");
             } else if (controller.isRelationshipClicked()) {
                 double size = 70;
                 double[] points = {
@@ -335,7 +330,7 @@ public class AppView extends Application {
                     }
                 }
                 controller.setRelationshipClicked(false);
-                controller.toggleButtonStyle(kapcsolatButton, "action-button-clicked");
+                controller.toggleButtonStyle(relationButton, "relationship-button-clicked");
             } else if (controller.isConnectClicked()) {
                 for (Node node : root.getChildren()) {
                     if (!(node instanceof Line)) {
@@ -412,7 +407,7 @@ public class AppView extends Application {
                     }
                 }
                 controller.setSpecializeClicked(false);
-                controller.toggleButtonStyle(specializerButton, "action-button-clicked");
+                controller.toggleButtonStyle(specializeButton, "specialize-button-clicked");
             } else {
                 // selector for nodes (start from the last node and end at the first)
                 for (int i = root.getChildren().size() - 1; i >= 0; i--) {
